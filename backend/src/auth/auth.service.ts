@@ -32,10 +32,38 @@ export class AuthService {
     }
   }
 
-  async register(dto: RegisterDto) {
-    const existing = await this.prisma.user.findUnique({
-      where: { email: dto.email },
+  async sendRegisterOtp(email: string) {
+    const existing = await this.prisma.user.findUnique({ where: { email } });
+    if (existing) throw new ConflictException('Email already registered');
+
+    // Invalidate old OTPs
+    await this.prisma.otpCode.updateMany({
+      where: { target: email, channel: 'register', used: false },
+      data: { used: true },
     });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await this.prisma.otpCode.create({
+      data: { target: email, code: otp, channel: 'register', expiresAt },
+    });
+
+    await this.sendVerificationEmail(email, otp);
+    return { otpSent: true, email, message: 'Verification code sent to your email' };
+  }
+
+  async register(dto: RegisterDto & { otpCode: string }) {
+    // Verify OTP first
+    const otp = await this.prisma.otpCode.findFirst({
+      where: { target: dto.email, code: dto.otpCode, channel: 'register', used: false, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!otp) throw new UnauthorizedException('Invalid or expired verification code');
+
+    await this.prisma.otpCode.update({ where: { id: otp.id }, data: { used: true } });
+
+    const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existing) throw new ConflictException('Email already registered');
 
     const hashed = await bcrypt.hash(dto.password, 12);
@@ -46,12 +74,37 @@ export class AuthService {
         phone: dto.phone,
         password: hashed,
         role: 'USER',
+        isVerified: true,
       },
     });
 
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
     return { user: this.sanitize(user), ...tokens };
+  }
+
+  private async sendVerificationEmail(to: string, code: string) {
+    if (!this.transporter) return;
+    const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+    await this.transporter.sendMail({
+      from: `"OffPlan" <${from}>`,
+      to,
+      subject: `Verify your email — ${code}`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
+          <div style="background:#0c4a6e;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px">
+            <h1 style="color:#fbbf24;margin:0;font-size:28px;letter-spacing:-1px">OffPlan</h1>
+            <p style="color:#7dd3fc;margin:8px 0 0;font-size:13px">Fractional Property Investment</p>
+          </div>
+          <h2 style="color:#111827;font-size:20px;margin:0 0 8px">Verify Your Email</h2>
+          <p style="color:#6b7280;font-size:14px;margin:0 0 24px">Enter this code to verify your email and create your account. It expires in 10 minutes.</p>
+          <div style="background:#f9fafb;border:2px dashed #e5e7eb;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px">
+            <span style="font-size:40px;font-weight:800;letter-spacing:12px;color:#0c4a6e">${code}</span>
+          </div>
+          <p style="color:#9ca3af;font-size:12px;text-align:center">If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `,
+    });
   }
 
   async login(dto: LoginDto) {
