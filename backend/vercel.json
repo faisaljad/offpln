@@ -3,9 +3,10 @@
   "buildCommand": "npx prisma generate && npm run build",
   "outputDirectory": ".",
   "functions": {
-    "api/index.ts": {
+    "api/index.js": {
       "maxDuration": 30,
-      "memory": 1024
+      "memory": 1024,
+      "includeFiles": "dist/**,node_modules/.prisma/**,node_modules/@prisma/client/**"
     }
   },
   "rewrites": [
