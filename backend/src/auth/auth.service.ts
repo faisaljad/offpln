@@ -6,16 +6,31 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
+import * as nodemailer from 'nodemailer';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
+  private transporter: nodemailer.Transporter | null = null;
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-  ) {}
+  ) {
+    const host = process.env.SMTP_HOST;
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+    if (host && user && pass) {
+      this.transporter = nodemailer.createTransport({
+        host,
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: { user, pass },
+      });
+    }
+  }
 
   async register(dto: RegisterDto) {
     const existing = await this.prisma.user.findUnique({
@@ -48,9 +63,64 @@ export class AuthService {
     const valid = await bcrypt.compare(dto.password, user.password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
+    // Generate OTP and send via email
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+
+    // Invalidate old OTPs
+    await this.prisma.otpCode.updateMany({
+      where: { target: user.email, channel: 'login', used: false },
+      data: { used: true },
+    });
+
+    await this.prisma.otpCode.create({
+      data: { target: user.email, code: otp, channel: 'login', expiresAt },
+    });
+
+    await this.sendLoginOtp(user.email, otp);
+
+    return { otpRequired: true, email: user.email, message: 'OTP sent to your email' };
+  }
+
+  async verifyLoginOtp(email: string, code: string) {
+    const otp = await this.prisma.otpCode.findFirst({
+      where: { target: email, code, channel: 'login', used: false, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!otp) throw new UnauthorizedException('Invalid or expired OTP');
+
+    await this.prisma.otpCode.update({ where: { id: otp.id }, data: { used: true } });
+
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) throw new UnauthorizedException('User not found');
+
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
     return { user: this.sanitize(user), ...tokens };
+  }
+
+  private async sendLoginOtp(to: string, code: string) {
+    if (!this.transporter) return; // silently skip if no SMTP
+    const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+    await this.transporter.sendMail({
+      from: `"OffPlan" <${from}>`,
+      to,
+      subject: `Your OffPlan login code: ${code}`,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
+          <div style="background:#0c4a6e;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px">
+            <h1 style="color:#fbbf24;margin:0;font-size:28px;letter-spacing:-1px">OffPlan</h1>
+            <p style="color:#7dd3fc;margin:8px 0 0;font-size:13px">Fractional Property Investment</p>
+          </div>
+          <h2 style="color:#111827;font-size:20px;margin:0 0 8px">Login Verification</h2>
+          <p style="color:#6b7280;font-size:14px;margin:0 0 24px">Enter this code to complete your sign in. It expires in 10 minutes.</p>
+          <div style="background:#f9fafb;border:2px dashed #e5e7eb;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px">
+            <span style="font-size:40px;font-weight:800;letter-spacing:12px;color:#0c4a6e">${code}</span>
+          </div>
+          <p style="color:#9ca3af;font-size:12px;text-align:center">If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `,
+    });
   }
 
   async refresh(userId: string, refreshToken: string) {

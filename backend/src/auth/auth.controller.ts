@@ -29,6 +29,12 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
+  @Post('verify-login-otp')
+  @HttpCode(HttpStatus.OK)
+  verifyLoginOtp(@Body('email') email: string, @Body('code') code: string) {
+    return this.authService.verifyLoginOtp(email, code);
+  }
+
   @Post('refresh')
   @UseGuards(JwtRefreshGuard)
   @HttpCode(HttpStatus.OK)

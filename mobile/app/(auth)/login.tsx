@@ -8,8 +8,9 @@ import {
   Platform,
   ActivityIndicator,
   SafeAreaView,
+  ScrollView,
 } from 'react-native';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { router, Link } from 'expo-router';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
@@ -26,6 +27,12 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricType, setBiometricType] = useState<'fingerprint' | 'face' | 'iris' | null>(null);
+
+  // OTP step
+  const [otpStep, setOtpStep] = useState(false);
+  const [otpEmail, setOtpEmail] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const otpRefs = useRef<(TextInput | null)[]>([]);
 
   useEffect(() => {
     checkBiometrics();
@@ -56,12 +63,66 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const res: any = await api.login({ email, password });
-      await setAuth(res.user, res.accessToken, res.refreshToken);
-      router.replace('/(tabs)');
+      if (res.otpRequired) {
+        setOtpEmail(res.email);
+        setOtp(['', '', '', '', '', '']);
+        setOtpStep(true);
+        Toast.show({ type: 'success', text1: 'Verification code sent', text2: `Check ${res.email}` });
+      } else {
+        // Fallback: direct login if OTP not required
+        await setAuth(res.user, res.accessToken, res.refreshToken);
+        router.replace('/(tabs)');
+      }
     } catch (err: any) {
       Toast.show({ type: 'error', text1: err.message || 'Login failed' });
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleVerifyOtp() {
+    const code = otp.join('');
+    if (code.length !== 6) {
+      Toast.show({ type: 'error', text1: 'Please enter the 6-digit code' });
+      return;
+    }
+    setLoading(true);
+    try {
+      const res: any = await api.verifyLoginOtp(otpEmail, code);
+      await setAuth(res.user, res.accessToken, res.refreshToken);
+      router.replace('/(tabs)');
+    } catch (err: any) {
+      Toast.show({ type: 'error', text1: err.message || 'Invalid code' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResendOtp() {
+    setLoading(true);
+    try {
+      await api.login({ email, password });
+      setOtp(['', '', '', '', '', '']);
+      Toast.show({ type: 'success', text1: 'New code sent' });
+    } catch (err: any) {
+      Toast.show({ type: 'error', text1: err.message || 'Failed to resend' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleOtpChange(text: string, index: number) {
+    const newOtp = [...otp];
+    newOtp[index] = text;
+    setOtp(newOtp);
+    if (text && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  }
+
+  function handleOtpKeyPress(key: string, index: number) {
+    if (key === 'Backspace' && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
     }
   }
 
@@ -81,7 +142,6 @@ export default function LoginScreen() {
         return;
       }
 
-      // Use stored refresh token to get a new access token
       setLoading(true);
       const refreshToken = await SecureStore.getItemAsync('refresh_token');
       if (!refreshToken) {
@@ -135,118 +195,174 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <LinearGradient
-        colors={['#0c4a6e', '#0369a1', '#075985']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.headerGradient}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        bounces={false}
       >
-        <SafeAreaView style={styles.headerSafe}>
-          {/* Decorative circles */}
-          <View style={styles.decorCircle1} />
-          <View style={styles.decorCircle2} />
-          <View style={styles.decorCircle3} />
-
-          <View style={styles.logoContainer}>
-            <View style={styles.logoIcon}>
-              <Ionicons name="business" size={28} color="#fbbf24" />
-            </View>
-            <Text style={styles.logo}>OffPlan</Text>
-            <Text style={styles.subtitle}>Fractional Property Investment</Text>
-          </View>
-        </SafeAreaView>
-      </LinearGradient>
-
-      <View style={styles.form}>
-        <View style={styles.formHeader}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.desc}>Sign in to your investor account</Text>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Email</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="mail-outline" size={18} color="#94a3b8" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="investor@example.com"
-              placeholderTextColor="#cbd5e1"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-            />
-          </View>
-        </View>
-
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>Password</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="lock-closed-outline" size={18} color="#94a3b8" style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Enter your password"
-              placeholderTextColor="#cbd5e1"
-              secureTextEntry
-            />
-          </View>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
-          activeOpacity={0.85}
+        <LinearGradient
+          colors={['#0c4a6e', '#0369a1', '#075985']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.headerGradient}
         >
-          <LinearGradient
-            colors={loading ? ['#94a3b8', '#94a3b8'] : ['#0284c7', '#0369a1']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.buttonGradient}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <>
-                <Text style={styles.buttonText}>Sign In</Text>
-                <Ionicons name="arrow-forward" size={18} color="#fff" />
-              </>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+          <SafeAreaView style={styles.headerSafe}>
+            <View style={styles.decorCircle1} />
+            <View style={styles.decorCircle2} />
+            <View style={styles.decorCircle3} />
 
-        {biometricAvailable && !loading && (
-          <TouchableOpacity style={styles.biometricButton} onPress={handleBiometricLogin} activeOpacity={0.7}>
-            <View style={styles.biometricIconCircle}>
-              <Ionicons name={biometricIcon() as any} size={24} color="#0284c7" />
+            <View style={styles.logoContainer}>
+              <View style={styles.logoIcon}>
+                <Ionicons name="business" size={28} color="#fbbf24" />
+              </View>
+              <Text style={styles.logo}>OffPlan</Text>
+              <Text style={styles.subtitle}>Fractional Property Investment</Text>
             </View>
-            <Text style={styles.biometricText}>{biometricLabel()}</Text>
-          </TouchableOpacity>
-        )}
+          </SafeAreaView>
+        </LinearGradient>
 
-        <View style={styles.dividerRow}>
-          <View style={styles.divider} />
-          <Text style={styles.dividerText}>or</Text>
-          <View style={styles.divider} />
+        <View style={styles.form}>
+          {!otpStep ? (
+            <>
+              <View style={styles.formHeader}>
+                <Text style={styles.title}>Welcome Back</Text>
+                <Text style={styles.desc}>Sign in to your investor account</Text>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Email</Text>
+                <View style={styles.inputWrapper}>
+                  <Ionicons name="mail-outline" size={18} color="#94a3b8" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="investor@example.com"
+                    placeholderTextColor="#cbd5e1"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoComplete="email"
+                  />
+                </View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Password</Text>
+                <View style={styles.inputWrapper}>
+                  <Ionicons name="lock-closed-outline" size={18} color="#94a3b8" style={styles.inputIcon} />
+                  <TextInput
+                    style={styles.input}
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="Enter your password"
+                    placeholderTextColor="#cbd5e1"
+                    secureTextEntry
+                  />
+                </View>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={handleLogin}
+                disabled={loading}
+                activeOpacity={0.85}
+              >
+                <LinearGradient
+                  colors={loading ? ['#94a3b8', '#94a3b8'] : ['#0284c7', '#0369a1']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.buttonGradient}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <>
+                      <Text style={styles.buttonText}>Sign In</Text>
+                      <Ionicons name="arrow-forward" size={18} color="#fff" />
+                    </>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+
+              {biometricAvailable && !loading && (
+                <TouchableOpacity style={styles.biometricButton} onPress={handleBiometricLogin} activeOpacity={0.7}>
+                  <View style={styles.biometricIconCircle}>
+                    <Ionicons name={biometricIcon() as any} size={24} color="#0284c7" />
+                  </View>
+                  <Text style={styles.biometricText}>{biometricLabel()}</Text>
+                </TouchableOpacity>
+              )}
+
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>Don't have an account? </Text>
+                <Link href="/(auth)/register" asChild>
+                  <TouchableOpacity>
+                    <Text style={styles.link}>Register</Text>
+                  </TouchableOpacity>
+                </Link>
+              </View>
+            </>
+          ) : (
+            <>
+              <View style={styles.formHeader}>
+                <TouchableOpacity onPress={() => setOtpStep(false)} style={styles.backBtn}>
+                  <Ionicons name="arrow-back" size={20} color="#0f172a" />
+                </TouchableOpacity>
+                <Text style={styles.title}>Enter Verification Code</Text>
+                <Text style={styles.desc}>
+                  We sent a 6-digit code to{'\n'}
+                  <Text style={styles.otpEmailText}>{otpEmail}</Text>
+                </Text>
+              </View>
+
+              <View style={styles.otpRow}>
+                {otp.map((digit, i) => (
+                  <TextInput
+                    key={i}
+                    ref={(ref) => { otpRefs.current[i] = ref; }}
+                    style={[styles.otpInput, digit ? styles.otpInputFilled : null]}
+                    value={digit}
+                    onChangeText={(text) => handleOtpChange(text, i)}
+                    onKeyPress={({ nativeEvent }) => handleOtpKeyPress(nativeEvent.key, i)}
+                    keyboardType="number-pad"
+                    maxLength={1}
+                    selectTextOnFocus
+                  />
+                ))}
+              </View>
+
+              <TouchableOpacity
+                style={[styles.button, loading && styles.buttonDisabled]}
+                onPress={handleVerifyOtp}
+                disabled={loading}
+                activeOpacity={0.85}
+              >
+                <LinearGradient
+                  colors={loading ? ['#94a3b8', '#94a3b8'] : ['#0284c7', '#0369a1']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.buttonGradient}
+                >
+                  {loading ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <>
+                      <Ionicons name="shield-checkmark-outline" size={18} color="#fff" />
+                      <Text style={styles.buttonText}>Verify & Sign In</Text>
+                    </>
+                  )}
+                </LinearGradient>
+              </TouchableOpacity>
+
+              <TouchableOpacity onPress={handleResendOtp} disabled={loading} style={styles.resendBtn}>
+                <Ionicons name="refresh-outline" size={16} color="#0284c7" />
+                <Text style={styles.resendText}>Resend Code</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
-
-        <TouchableOpacity style={styles.otpButton} onPress={() => router.push('/(auth)/otp-request')} activeOpacity={0.7}>
-          <Ionicons name="key-outline" size={18} color="#0f172a" />
-          <Text style={styles.otpButtonText}>Login with OTP</Text>
-        </TouchableOpacity>
-
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
-          <Link href="/(auth)/register" asChild>
-            <TouchableOpacity>
-              <Text style={styles.link}>Register</Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
-      </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
@@ -256,12 +372,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#0c4a6e',
   },
+  scrollContent: {
+    flexGrow: 1,
+  },
   headerGradient: {
-    flex: 0.38,
+    paddingBottom: 16,
     overflow: 'hidden',
   },
   headerSafe: {
-    flex: 1,
+    paddingTop: Platform.OS === 'android' ? 48 : 0,
+    paddingBottom: 32,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -318,16 +438,26 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   form: {
-    flex: 0.62,
+    flex: 1,
     backgroundColor: '#fff',
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     paddingHorizontal: 28,
     paddingTop: 32,
+    paddingBottom: 40,
     marginTop: -16,
   },
   formHeader: {
     marginBottom: 28,
+  },
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#f1f5f9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
     fontSize: 26,
@@ -340,6 +470,11 @@ const styles = StyleSheet.create({
     color: '#94a3b8',
     fontSize: 15,
     fontWeight: '400',
+    lineHeight: 22,
+  },
+  otpEmailText: {
+    color: '#0284c7',
+    fontWeight: '600',
   },
   inputGroup: {
     marginBottom: 18,
@@ -392,31 +527,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     letterSpacing: 0.2,
   },
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 16,
-    gap: 12,
-  },
-  divider: { flex: 1, height: 1, backgroundColor: '#f1f5f9' },
-  dividerText: { color: '#cbd5e1', fontSize: 12, fontWeight: '500' },
-  otpButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: '#e2e8f0',
-    backgroundColor: '#fff',
-    marginBottom: 4,
-  },
-  otpButtonText: {
-    color: '#0f172a',
-    fontWeight: '600',
-    fontSize: 15,
-  },
   biometricButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -445,7 +555,7 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    marginTop: 22,
+    marginTop: 28,
   },
   footerText: {
     color: '#94a3b8',
@@ -454,6 +564,43 @@ const styles = StyleSheet.create({
   link: {
     color: '#0284c7',
     fontWeight: '700',
+    fontSize: 14,
+  },
+
+  // OTP step
+  otpRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 28,
+  },
+  otpInput: {
+    width: 48,
+    height: 56,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+    textAlign: 'center',
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  otpInputFilled: {
+    borderColor: '#0284c7',
+    backgroundColor: '#eff6ff',
+  },
+  resendBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 20,
+    paddingVertical: 12,
+  },
+  resendText: {
+    color: '#0284c7',
+    fontWeight: '600',
     fontSize: 14,
   },
 });

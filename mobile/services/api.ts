@@ -75,6 +75,8 @@ export const api = {
   // Auth
   register: (body: any) => request('/auth/register', { method: 'POST', body: JSON.stringify(body) }, false),
   login: (body: any) => request('/auth/login', { method: 'POST', body: JSON.stringify(body) }, false),
+  verifyLoginOtp: (email: string, code: string) =>
+    request('/auth/verify-login-otp', { method: 'POST', body: JSON.stringify({ email, code }) }, false),
 
   // Properties
   getProperties: (params?: Record<string, any>) => {
