@@ -56,7 +56,10 @@ export class StorageService implements OnModuleInit {
       this.logger.log('Storage driver: AWS S3');
     } else {
       this.driver = 'local';
-      fs.mkdirSync(this.localUploadDir, { recursive: true });
+      // Use /tmp on serverless (Vercel), otherwise cwd/uploads
+      const isServerless = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+      this.localUploadDir = isServerless ? '/tmp/uploads' : path.join(process.cwd(), 'uploads');
+      try { fs.mkdirSync(this.localUploadDir, { recursive: true }); } catch {}
       this.logger.warn('Storage driver: LOCAL DISK (not for production)');
     }
   }
