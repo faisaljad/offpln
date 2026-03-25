@@ -1,0 +1,459 @@
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+  SafeAreaView,
+} from 'react-native';
+import { useState, useEffect } from 'react';
+import { router, Link } from 'expo-router';
+import * as LocalAuthentication from 'expo-local-authentication';
+import * as SecureStore from 'expo-secure-store';
+import Toast from 'react-native-toast-message';
+import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { api } from '../../services/api';
+import { useAuthStore } from '../../store/auth';
+
+export default function LoginScreen() {
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [biometricType, setBiometricType] = useState<'fingerprint' | 'face' | 'iris' | null>(null);
+
+  useEffect(() => {
+    checkBiometrics();
+  }, []);
+
+  async function checkBiometrics() {
+    const compatible = await LocalAuthentication.hasHardwareAsync();
+    const enrolled = await LocalAuthentication.isEnrolledAsync();
+    if (!compatible || !enrolled) return;
+
+    const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
+    if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
+      setBiometricType('face');
+    } else if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
+      setBiometricType('fingerprint');
+    } else if (types.includes(LocalAuthentication.AuthenticationType.IRIS)) {
+      setBiometricType('iris');
+    }
+
+    setBiometricAvailable(true);
+  }
+
+  async function handleLogin() {
+    if (!email || !password) {
+      Toast.show({ type: 'error', text1: 'Please fill all fields' });
+      return;
+    }
+    setLoading(true);
+    try {
+      const res: any = await api.login({ email, password });
+      await setAuth(res.user, res.accessToken, res.refreshToken);
+      router.replace('/(tabs)');
+    } catch (err: any) {
+      Toast.show({ type: 'error', text1: err.message || 'Login failed' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleBiometricLogin() {
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Sign in to OffPlan',
+        fallbackLabel: 'Use password',
+        cancelLabel: 'Cancel',
+        disableDeviceFallback: false,
+      });
+
+      if (!result.success) {
+        if (result.error !== 'user_cancel' && result.error !== 'system_cancel') {
+          Toast.show({ type: 'error', text1: 'Biometric authentication failed' });
+        }
+        return;
+      }
+
+      // Use stored refresh token to get a new access token
+      setLoading(true);
+      const refreshToken = await SecureStore.getItemAsync('refresh_token');
+      if (!refreshToken) {
+        Toast.show({ type: 'error', text1: 'Please sign in with your password first to enable biometric login.' });
+        return;
+      }
+
+      const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+      const res = await fetch(`${BASE_URL}/api/v1/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (!res.ok) {
+        Toast.show({ type: 'error', text1: 'Session expired. Please log in with your password.' });
+        return;
+      }
+
+      const json = await res.json();
+      const data = json?.data ?? json;
+
+      const userStr = await SecureStore.getItemAsync('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      if (!user) {
+        Toast.show({ type: 'error', text1: 'Please log in with your password first' });
+        return;
+      }
+
+      await setAuth(user, data.accessToken, data.refreshToken ?? refreshToken);
+      router.replace('/(tabs)');
+    } catch (err: any) {
+      Toast.show({ type: 'error', text1: err?.message || 'Biometric login failed' });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function biometricIcon() {
+    if (biometricType === 'face') return 'scan-outline';
+    return 'finger-print-outline';
+  }
+
+  function biometricLabel() {
+    if (biometricType === 'face') return 'Sign in with Face ID';
+    return 'Sign in with Fingerprint';
+  }
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <LinearGradient
+        colors={['#0c4a6e', '#0369a1', '#075985']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
+      >
+        <SafeAreaView style={styles.headerSafe}>
+          {/* Decorative circles */}
+          <View style={styles.decorCircle1} />
+          <View style={styles.decorCircle2} />
+          <View style={styles.decorCircle3} />
+
+          <View style={styles.logoContainer}>
+            <View style={styles.logoIcon}>
+              <Ionicons name="business" size={28} color="#fbbf24" />
+            </View>
+            <Text style={styles.logo}>OffPlan</Text>
+            <Text style={styles.subtitle}>Fractional Property Investment</Text>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+
+      <View style={styles.form}>
+        <View style={styles.formHeader}>
+          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.desc}>Sign in to your investor account</Text>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Email</Text>
+          <View style={styles.inputWrapper}>
+            <Ionicons name="mail-outline" size={18} color="#94a3b8" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              placeholder="investor@example.com"
+              placeholderTextColor="#cbd5e1"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoComplete="email"
+            />
+          </View>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Password</Text>
+          <View style={styles.inputWrapper}>
+            <Ionicons name="lock-closed-outline" size={18} color="#94a3b8" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Enter your password"
+              placeholderTextColor="#cbd5e1"
+              secureTextEntry
+            />
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleLogin}
+          disabled={loading}
+          activeOpacity={0.85}
+        >
+          <LinearGradient
+            colors={loading ? ['#94a3b8', '#94a3b8'] : ['#0284c7', '#0369a1']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.buttonGradient}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <>
+                <Text style={styles.buttonText}>Sign In</Text>
+                <Ionicons name="arrow-forward" size={18} color="#fff" />
+              </>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+
+        {biometricAvailable && !loading && (
+          <TouchableOpacity style={styles.biometricButton} onPress={handleBiometricLogin} activeOpacity={0.7}>
+            <View style={styles.biometricIconCircle}>
+              <Ionicons name={biometricIcon() as any} size={24} color="#0284c7" />
+            </View>
+            <Text style={styles.biometricText}>{biometricLabel()}</Text>
+          </TouchableOpacity>
+        )}
+
+        <View style={styles.dividerRow}>
+          <View style={styles.divider} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.divider} />
+        </View>
+
+        <TouchableOpacity style={styles.otpButton} onPress={() => router.push('/(auth)/otp-request')} activeOpacity={0.7}>
+          <Ionicons name="key-outline" size={18} color="#0f172a" />
+          <Text style={styles.otpButtonText}>Login with OTP</Text>
+        </TouchableOpacity>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Don't have an account? </Text>
+          <Link href="/(auth)/register" asChild>
+            <TouchableOpacity>
+              <Text style={styles.link}>Register</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
+      </View>
+    </KeyboardAvoidingView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0c4a6e',
+  },
+  headerGradient: {
+    flex: 0.38,
+    overflow: 'hidden',
+  },
+  headerSafe: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  decorCircle1: {
+    position: 'absolute',
+    top: -50,
+    right: -50,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+  },
+  decorCircle2: {
+    position: 'absolute',
+    bottom: 20,
+    left: -40,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  decorCircle3: {
+    position: 'absolute',
+    top: 60,
+    left: 40,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  logoContainer: {
+    alignItems: 'center',
+  },
+  logoIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  logo: {
+    fontSize: 38,
+    fontWeight: '800',
+    color: '#fbbf24',
+    letterSpacing: -1.5,
+  },
+  subtitle: {
+    color: '#93c5fd',
+    marginTop: 6,
+    fontSize: 14,
+    fontWeight: '500',
+    letterSpacing: 0.3,
+  },
+  form: {
+    flex: 0.62,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingHorizontal: 28,
+    paddingTop: 32,
+    marginTop: -16,
+  },
+  formHeader: {
+    marginBottom: 28,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#0f172a',
+    marginBottom: 4,
+    letterSpacing: -0.5,
+  },
+  desc: {
+    color: '#94a3b8',
+    fontSize: 15,
+    fontWeight: '400',
+  },
+  inputGroup: {
+    marginBottom: 18,
+  },
+  label: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#334155',
+    marginBottom: 8,
+    letterSpacing: 0.1,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    borderRadius: 14,
+    backgroundColor: '#f8fafc',
+    overflow: 'hidden',
+  },
+  inputIcon: {
+    marginLeft: 16,
+  },
+  input: {
+    flex: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 15,
+    fontSize: 15,
+    color: '#0f172a',
+  },
+  button: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginTop: 8,
+  },
+  buttonGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 16,
+    borderRadius: 14,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 16,
+    letterSpacing: 0.2,
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+    gap: 12,
+  },
+  divider: { flex: 1, height: 1, backgroundColor: '#f1f5f9' },
+  dividerText: { color: '#cbd5e1', fontSize: 12, fontWeight: '500' },
+  otpButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#fff',
+    marginBottom: 4,
+  },
+  otpButtonText: {
+    color: '#0f172a',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  biometricButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 14,
+    paddingVertical: 14,
+    borderWidth: 1.5,
+    borderColor: '#bfdbfe',
+    borderRadius: 14,
+    backgroundColor: '#eff6ff',
+  },
+  biometricIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    backgroundColor: '#dbeafe',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  biometricText: {
+    color: '#0284c7',
+    fontWeight: '600',
+    fontSize: 15,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 22,
+  },
+  footerText: {
+    color: '#94a3b8',
+    fontSize: 14,
+  },
+  link: {
+    color: '#0284c7',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+});

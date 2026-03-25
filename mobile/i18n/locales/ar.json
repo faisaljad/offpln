@@ -1,0 +1,59 @@
+{
+  "app": {
+    "name": "أوف بلان",
+    "tagline": "الاستثمار العقاري الجزئي"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "name": "الاسم الكامل",
+    "phone": "رقم الهاتف",
+    "noAccount": "ليس لديك حساب؟",
+    "haveAccount": "لديك حساب بالفعل؟",
+    "logout": "تسجيل الخروج",
+    "logoutConfirm": "هل أنت متأكد من تسجيل الخروج؟"
+  },
+  "properties": {
+    "title": "العقارات",
+    "search": "ابحث عن عقارات، مناطق...",
+    "perShare": "لكل حصة",
+    "sharesLeft": "حصة متاحة",
+    "roi": "العائد",
+    "totalValue": "القيمة الإجمالية",
+    "developer": "المطور",
+    "about": "عن العقار",
+    "paymentPlan": "خطة الدفع",
+    "investNow": "استثمر الآن",
+    "noProperties": "لا توجد عقارات"
+  },
+  "investments": {
+    "title": "استثماراتي",
+    "noInvestments": "لا توجد استثمارات بعد",
+    "browse": "تصفح العقارات",
+    "shares": "الحصص",
+    "total": "الإجمالي",
+    "status": {
+      "PENDING": "قيد الانتظار",
+      "APPROVED": "مقبول",
+      "REJECTED": "مرفوض",
+      "COMPLETED": "مكتمل"
+    },
+    "nextPayment": "الدفعة القادمة"
+  },
+  "profile": {
+    "title": "الملف الشخصي",
+    "myInvestments": "استثماراتي",
+    "paymentSchedule": "جدول الدفع",
+    "notifications": "الإشعارات",
+    "support": "الدعم"
+  },
+  "common": {
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "loading": "جاري التحميل...",
+    "error": "حدث خطأ ما"
+  }
+}

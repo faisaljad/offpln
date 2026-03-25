@@ -1,0 +1,219 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  phone       String?
+  password    String
+  role        Role     @default(USER)
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  investments    Investment[]
+  refreshTokens  RefreshToken[]
+  sellerTransfers ShareTransfer[] @relation("TransferSeller")
+  buyerTransfers  ShareTransfer[] @relation("TransferBuyer")
+  payouts        Payout[]
+}
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  target    String
+  code      String
+  channel   String
+  used      Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([target])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Property {
+  id            String   @id @default(uuid())
+  title         String
+  description   String
+  location      String
+  latitude      Float?
+  longitude     Float?
+  developer     String?
+  totalPrice    Float
+  totalShares   Int
+  pricePerShare Float
+  availableShares Int
+  roi           Float
+  profitType    String?
+  developerLogo String?
+  images        String[]
+  paymentPlan   Json
+  status        PropertyStatus @default(ACTIVE)
+  soldPrice     Float?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  investments Investment[]
+  payouts     Payout[]
+
+  @@index([status])
+  @@index([location])
+}
+
+model Investment {
+  id              String           @id @default(uuid())
+  userId          String
+  propertyId      String
+  sharesPurchased Int
+  totalAmount     Float
+  status          InvestmentStatus @default(PENDING)
+  paymentSchedule Json
+  notes           String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id])
+  property Property @relation(fields: [propertyId], references: [id])
+  payments Payment[]
+  transfer ShareTransfer?
+  payout   Payout?
+
+  @@index([userId])
+  @@index([propertyId])
+  @@index([status])
+}
+
+model Payment {
+  id           String        @id @default(uuid())
+  investmentId String
+  name         String
+  amount       Float
+  percentage   Float
+  dueDate      DateTime?
+  milestone    String?
+  status           PaymentStatus @default(PENDING)
+  paidAt           DateTime?
+  proofUrl         String?
+  investorProofUrl String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  investment Investment @relation(fields: [investmentId], references: [id])
+
+  @@index([investmentId])
+  @@index([status])
+}
+
+model ShareTransfer {
+  id           String              @id @default(uuid())
+  investmentId String              @unique
+  sellerId     String
+  buyerId      String?
+  askPrice     Float
+  status       ShareTransferStatus @default(LISTED)
+  otpCode       String?
+  otpExpiresAt  DateTime?
+  notes         String?
+  rejectionNote String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  investment Investment @relation(fields: [investmentId], references: [id])
+  seller     User       @relation("TransferSeller", fields: [sellerId], references: [id])
+  buyer      User?      @relation("TransferBuyer", fields: [buyerId], references: [id])
+
+  @@index([sellerId])
+  @@index([buyerId])
+  @@index([status])
+}
+
+model Payout {
+  id           String       @id @default(uuid())
+  investmentId String       @unique
+  propertyId   String
+  userId       String
+  profitAmount Float
+  totalReturn  Float
+  status       PayoutStatus @default(PENDING)
+  receiptUrl   String?
+  paidAt       DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  investment Investment @relation(fields: [investmentId], references: [id])
+  property   Property   @relation(fields: [propertyId], references: [id])
+  user       User       @relation(fields: [userId], references: [id])
+
+  @@index([propertyId])
+  @@index([userId])
+  @@index([status])
+}
+
+model AppSettings {
+  id                     String   @id @default("singleton")
+  termsAndConditions     String   @default("")
+  paymentTransferDetails String   @default("")
+  transferListingTerms   String   @default("")
+  transferBuyingTerms    String   @default("")
+  updatedAt              DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum PropertyStatus {
+  ACTIVE
+  SOLD_OUT
+  COMING_SOON
+  ARCHIVED
+  SOLD
+}
+
+enum PayoutStatus {
+  PENDING
+  PAID
+}
+
+enum InvestmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum PaymentStatus {
+  PENDING
+  UNDER_REVIEW
+  PAID
+  OVERDUE
+  WAIVED
+}
+
+enum ShareTransferStatus {
+  PENDING_APPROVAL
+  LISTED
+  REQUESTED
+  OTP_PENDING
+  COMPLETED
+  CANCELLED
+  REJECTED
+}

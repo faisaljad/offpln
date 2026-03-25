@@ -1,0 +1,59 @@
+{
+  "app": {
+    "name": "OffPlan",
+    "tagline": "Fractional Property Investment"
+  },
+  "auth": {
+    "login": "Sign In",
+    "register": "Create Account",
+    "email": "Email",
+    "password": "Password",
+    "name": "Full Name",
+    "phone": "Phone",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "logout": "Logout",
+    "logoutConfirm": "Are you sure you want to logout?"
+  },
+  "properties": {
+    "title": "Properties",
+    "search": "Search properties, areas...",
+    "perShare": "per share",
+    "sharesLeft": "shares left",
+    "roi": "ROI",
+    "totalValue": "Total Value",
+    "developer": "Developer",
+    "about": "About",
+    "paymentPlan": "Payment Plan",
+    "investNow": "Invest Now",
+    "noProperties": "No properties found"
+  },
+  "investments": {
+    "title": "My Investments",
+    "noInvestments": "No investments yet",
+    "browse": "Browse Properties",
+    "shares": "Shares",
+    "total": "Total",
+    "status": {
+      "PENDING": "Pending",
+      "APPROVED": "Approved",
+      "REJECTED": "Rejected",
+      "COMPLETED": "Completed"
+    },
+    "nextPayment": "Next Payment"
+  },
+  "profile": {
+    "title": "Profile",
+    "myInvestments": "My Investments",
+    "paymentSchedule": "Payment Schedule",
+    "notifications": "Notifications",
+    "support": "Support"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "loading": "Loading...",
+    "error": "Something went wrong"
+  }
+}

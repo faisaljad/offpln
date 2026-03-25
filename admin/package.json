@@ -1,0 +1,33 @@
+{
+  "name": "offplan-admin",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+    "lint": "prettier --check . && eslint ."
+  },
+  "devDependencies": {
+    "@sveltejs/adapter-node": "^5.0.0",
+    "@sveltejs/kit": "^2.5.0",
+    "@sveltejs/vite-plugin-svelte": "^3.0.0",
+    "@types/node": "^20.11.0",
+    "autoprefixer": "^10.4.17",
+    "postcss": "^8.4.33",
+    "prettier": "^3.2.0",
+    "prettier-plugin-svelte": "^3.1.0",
+    "svelte": "^5.0.0",
+    "svelte-check": "^3.6.0",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.0"
+  },
+  "dependencies": {
+    "lucide-svelte": "^0.344.0",
+    "svelte-sonner": "^0.3.28",
+    "zod": "^3.22.4"
+  },
+  "type": "module"
+}

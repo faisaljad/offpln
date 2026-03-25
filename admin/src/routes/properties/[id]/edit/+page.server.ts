@@ -1,0 +1,81 @@
+import { redirect, fail } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
+import type { PageServerLoad, Actions } from './$types';
+import { apiFetch } from '$lib/utils/api';
+import { z } from 'zod';
+
+const PropertySchema = z.object({
+  title: z.string().min(3),
+  description: z.string().min(1),
+  location: z.string().min(2),
+  developer: z.string().optional(),
+  developerLogo: z.string().optional(),
+  totalPrice: z.coerce.number().positive(),
+  totalShares: z.coerce.number().int().positive(),
+  roi: z.coerce.number().min(0),
+  profitType: z.enum(['SELLS_AT_PROFIT', 'PRICE_INCREASE']).default('SELLS_AT_PROFIT'),
+  status: z.enum(['ACTIVE', 'COMING_SOON', 'SOLD_OUT', 'ARCHIVED']),
+  latitude: z.coerce.number().optional(),
+  longitude: z.coerce.number().optional(),
+});
+
+export const load: PageServerLoad = async ({ cookies, params }) => {
+  const token = cookies.get('admin_token');
+  if (!token) throw redirect(302, '/login');
+
+  try {
+    const property = await apiFetch(`/admin/properties/${params.id}`, { token });
+    return { property };
+  } catch (err: any) {
+    if (err.status === 401) throw redirect(302, '/login');
+    throw err;
+  }
+};
+
+export const actions: Actions = {
+  default: async ({ request, cookies, params }) => {
+    const token = cookies.get('admin_token');
+    const apiUrl = env.BACKEND_URL || 'http://localhost:3000';
+    const formData = await request.formData();
+
+    const raw = Object.fromEntries(formData.entries());
+    const paymentPlanRaw = raw.paymentPlan as string;
+
+    // Images and logo were already uploaded client-side; just collect the URLs
+    const images = formData.getAll('images').map(String).filter(Boolean);
+
+    const values = Object.fromEntries(
+      Object.entries(raw).filter(([, v]) => !(v instanceof File)),
+    );
+
+    const result = PropertySchema.safeParse(raw);
+    if (!result.success) {
+      return fail(400, { errors: result.error.flatten().fieldErrors, values });
+    }
+
+    let paymentPlan: any;
+    try {
+      paymentPlan = JSON.parse(paymentPlanRaw || '{}');
+    } catch {
+      return fail(400, { errors: { paymentPlan: ['Invalid JSON'] }, values });
+    }
+
+    try {
+      const res = await fetch(`${apiUrl}/api/v1/admin/properties/${params.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ ...result.data, images, paymentPlan }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) return fail(res.status, { error: json.message ?? json.data?.message, values });
+    } catch (err: any) {
+      return fail(500, { error: err.message, values });
+    }
+
+    throw redirect(302, `/properties/${params.id}`);
+  },
+};
