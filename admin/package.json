@@ -25,6 +25,7 @@
     "vite": "^5.0.0"
   },
   "dependencies": {
+    "@sveltejs/adapter-vercel": "^6.3.3",
     "lucide-svelte": "^0.344.0",
     "svelte-sonner": "^0.3.28",
     "zod": "^3.22.4"
