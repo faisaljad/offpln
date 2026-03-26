@@ -13,6 +13,7 @@
     { href: '/reports', label: 'Reports', icon: '📊', perm: 'reports' },
     { href: '/payment-schedules', label: 'Payment Schedules', icon: '📅', perm: 'payment-schedules' },
     { href: '/payments', label: 'Payment Reviews', icon: '💳', perm: 'payments' },
+    { href: '/notifications', label: 'Notifications', icon: '🔔', perm: 'notifications' },
     { href: '/settings', label: 'Settings', icon: '⚙️', perm: 'settings' },
   ];
 

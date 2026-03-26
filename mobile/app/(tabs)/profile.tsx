@@ -22,6 +22,7 @@ const MENU_SECTIONS = [
   {
     items: [
       { icon: 'notifications-outline', label: 'Notifications', route: '/notifications', color: '#f59e0b', bg: '#fffbeb' },
+      { icon: 'settings-outline', label: 'Notification Settings', route: '/notification-settings', color: '#0284c7', bg: '#eff6ff' },
       { icon: 'help-circle-outline', label: 'Support', route: '/support', color: '#6366f1', bg: '#eef2ff' },
     ],
   },

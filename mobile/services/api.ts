@@ -147,4 +147,12 @@ export const api = {
   // User
   getProfile: () => request('/user/profile'),
   updateProfile: (body: any) => request('/user/profile', { method: 'PATCH', body: JSON.stringify(body) }),
+
+  // Notifications
+  getNotifications: (page: number) => request('/notifications?page=' + page + '&limit=20'),
+  getUnreadCount: () => request('/notifications/unread-count'),
+  markNotificationRead: (id: string) => request('/notifications/' + id + '/read', { method: 'PATCH' }),
+  markAllNotificationsRead: () => request('/notifications/mark-all-read', { method: 'POST' }),
+  getNotificationPrefs: () => request('/notifications/preferences'),
+  updateNotificationPrefs: (prefs: Record<string, boolean>) => request('/notifications/preferences', { method: 'PATCH', body: JSON.stringify(prefs) }),
 };

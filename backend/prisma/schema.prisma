@@ -21,11 +21,13 @@ model User {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  investments    Investment[]
-  refreshTokens  RefreshToken[]
-  sellerTransfers ShareTransfer[] @relation("TransferSeller")
-  buyerTransfers  ShareTransfer[] @relation("TransferBuyer")
-  payouts        Payout[]
+  investments       Investment[]
+  refreshTokens     RefreshToken[]
+  sellerTransfers   ShareTransfer[] @relation("TransferSeller")
+  buyerTransfers    ShareTransfer[] @relation("TransferBuyer")
+  payouts           Payout[]
+  notifications     Notification[]
+  notificationPrefs Json?
 }
 
 model OtpCode {
@@ -239,4 +241,21 @@ enum ShareTransferStatus {
   COMPLETED
   CANCELLED
   REJECTED
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  title     String
+  body      String
+  data      Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, read])
+  @@index([type])
 }

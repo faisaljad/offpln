@@ -11,6 +11,7 @@ import { StorageModule } from './storage/storage.module';
 import { OtpModule } from './otp/otp.module';
 import { SettingsModule } from './settings/settings.module';
 import { TransfersModule } from './transfers/transfers.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { TransfersModule } from './transfers/transfers.module';
     OtpModule,
     SettingsModule,
     TransfersModule,
+    NotificationsModule,
   ],
 })
 export class AppModule {}

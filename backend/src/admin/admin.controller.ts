@@ -15,6 +15,7 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { AdminService } from './admin.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PropertiesService } from '../properties/properties.service';
 import { InvestmentsService } from '../investments/investments.service';
 import { UsersService } from '../users/users.service';
@@ -52,7 +53,29 @@ export class AdminController {
     private usersService: UsersService,
     private storageService: StorageService,
     private paymentsService: PaymentsService,
+    private notificationsService: NotificationsService,
   ) {}
+
+  // --- Notifications ---
+  @Get('notifications')
+  getNotifications(@Query('page') page?: string) {
+    return this.notificationsService.adminGetAll(Number(page) || 1);
+  }
+
+  @Post('notifications/broadcast')
+  broadcastNotification(@Body() body: { title: string; body: string }) {
+    return this.notificationsService.adminBroadcast(body.title, body.body);
+  }
+
+  @Post('notifications/send')
+  sendNotification(@Body() body: { userId: string; title: string; body: string }) {
+    return this.notificationsService.adminSendToUser(body.userId, body.title, body.body);
+  }
+
+  @Post('notifications/trigger-payment-reminders')
+  triggerPaymentReminders() {
+    return this.notificationsService.notifyPaymentDue();
+  }
 
   @Get('dashboard')
   getDashboard() {
