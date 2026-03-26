@@ -7,147 +7,220 @@ import { useAuthStore } from '../store/auth';
 
 const { width } = Dimensions.get('window');
 
-function BuildingConstruction() {
-  const crane = useRef(new Animated.Value(0)).current;
-  const build1 = useRef(new Animated.Value(0)).current;
-  const build2 = useRef(new Animated.Value(0)).current;
-  const build3 = useRef(new Animated.Value(0)).current;
+function VillaConstruction() {
+  // Step animations: foundation → walls → roof → windows/door → garden
+  const foundation = useRef(new Animated.Value(0)).current;
+  const walls = useRef(new Animated.Value(0)).current;
+  const roof = useRef(new Animated.Value(0)).current;
+  const details = useRef(new Animated.Value(0)).current;
+  const garden = useRef(new Animated.Value(0)).current;
   const sparkle = useRef(new Animated.Value(0)).current;
+  const crane = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Crane swings
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(crane, { toValue: 1, duration: 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(crane, { toValue: 0, duration: 2000, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-      ])
-    ).start();
-
-    // Buildings rise
-    Animated.stagger(300, [
-      Animated.timing(build1, { toValue: 1, duration: 1200, easing: Easing.out(Easing.back(1.2)), useNativeDriver: true }),
-      Animated.timing(build2, { toValue: 1, duration: 1200, easing: Easing.out(Easing.back(1.2)), useNativeDriver: true }),
-      Animated.timing(build3, { toValue: 1, duration: 1200, easing: Easing.out(Easing.back(1.2)), useNativeDriver: true }),
+    // Sequential build process
+    Animated.sequence([
+      Animated.timing(foundation, { toValue: 1, duration: 500, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+      Animated.timing(walls, { toValue: 1, duration: 600, easing: Easing.out(Easing.back(1.1)), useNativeDriver: true }),
+      Animated.timing(roof, { toValue: 1, duration: 500, easing: Easing.out(Easing.back(1.3)), useNativeDriver: true }),
+      Animated.timing(details, { toValue: 1, duration: 400, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+      Animated.timing(garden, { toValue: 1, duration: 500, easing: Easing.out(Easing.ease), useNativeDriver: true }),
     ]).start();
 
-    // Sparkle loop
+    // Crane swings while building
     Animated.loop(
       Animated.sequence([
-        Animated.timing(sparkle, { toValue: 1, duration: 1500, useNativeDriver: true }),
-        Animated.timing(sparkle, { toValue: 0, duration: 1500, useNativeDriver: true }),
+        Animated.timing(crane, { toValue: 1, duration: 1800, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(crane, { toValue: 0, duration: 1800, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
       ])
     ).start();
+
+    // Sparkle after build
+    setTimeout(() => {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(sparkle, { toValue: 1, duration: 1200, useNativeDriver: true }),
+          Animated.timing(sparkle, { toValue: 0, duration: 1200, useNativeDriver: true }),
+        ])
+      ).start();
+    }, 2200);
   }, []);
 
-  const craneRotate = crane.interpolate({ inputRange: [0, 1], outputRange: ['-8deg', '8deg'] });
+  const craneRotate = crane.interpolate({ inputRange: [0, 1], outputRange: ['-6deg', '6deg'] });
+  const W = width * 0.88;
 
   return (
-    <View style={svgStyles.container}>
-      {/* Background grid lines */}
-      <Svg width={width * 0.85} height={280} viewBox="0 0 340 280">
+    <View style={{ width: W, height: 300, alignItems: 'center', justifyContent: 'flex-end', marginBottom: 32 }}>
+
+      {/* Crane — top right, disappears after roof */}
+      <Animated.View style={{
+        position: 'absolute', top: 0, right: 20,
+        transform: [{ rotate: craneRotate }],
+        opacity: roof.interpolate({ inputRange: [0, 0.8, 1], outputRange: [1, 1, 0] }),
+      }}>
+        <Svg width={50} height={110} viewBox="0 0 50 110">
+          <Rect x="22" y="15" width="5" height="95" fill="rgba(251,191,36,0.6)" rx="2" />
+          <Rect x="2" y="13" width="46" height="4" fill="rgba(251,191,36,0.7)" rx="2" />
+          <Line x1="8" y1="17" x2="8" y2="55" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
+          <Path d="M5 55 Q8 62 11 55" stroke="rgba(251,191,36,0.5)" strokeWidth="1.5" fill="none" />
+          <Circle cx="25" cy="13" r="3.5" fill="rgba(251,191,36,0.8)" />
+        </Svg>
+      </Animated.View>
+
+      {/* Ground */}
+      <Svg width={W} height={300} viewBox="0 0 360 300" style={{ position: 'absolute' }}>
         <Defs>
-          <SvgGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#0ea5e9" stopOpacity="0.08" />
-            <Stop offset="1" stopColor="#0284c7" stopOpacity="0.02" />
-          </SvgGradient>
-          <SvgGradient id="b1" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#0ea5e9" />
-            <Stop offset="1" stopColor="#0369a1" />
-          </SvgGradient>
-          <SvgGradient id="b2" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#fbbf24" />
-            <Stop offset="1" stopColor="#f59e0b" />
-          </SvgGradient>
-          <SvgGradient id="b3" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="#38bdf8" />
-            <Stop offset="1" stopColor="#0284c7" />
+          <SvgGradient id="groundG" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor="rgba(255,255,255,0.08)" />
+            <Stop offset="1" stopColor="rgba(255,255,255,0)" />
           </SvgGradient>
         </Defs>
-
-        {/* Subtle grid */}
-        {[0, 1, 2, 3, 4, 5].map(i => (
-          <Line key={`h${i}`} x1="0" y1={50 + i * 40} x2="340" y2={50 + i * 40} stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-        ))}
-        {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
-          <Line key={`v${i}`} x1={40 + i * 40} y1="0" x2={40 + i * 40} y2="280" stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-        ))}
-
-        {/* Ground line */}
-        <Line x1="20" y1="250" x2="320" y2="250" stroke="rgba(255,255,255,0.15)" strokeWidth="2" strokeLinecap="round" />
-
-        {/* Ground dots */}
-        {[40, 80, 120, 160, 200, 240, 280].map(x => (
-          <Circle key={x} cx={x} cy="250" r="2" fill="rgba(255,255,255,0.1)" />
-        ))}
+        <Rect x="30" y="260" width="300" height="30" rx="8" fill="url(#groundG)" />
+        <Line x1="30" y1="260" x2="330" y2="260" stroke="rgba(255,255,255,0.12)" strokeWidth="2" strokeLinecap="round" />
       </Svg>
 
-      {/* Crane */}
-      <Animated.View style={[svgStyles.crane, { transform: [{ rotate: craneRotate }] }]}>
-        <Svg width={60} height={120} viewBox="0 0 60 120">
-          {/* Crane mast */}
-          <Rect x="27" y="20" width="6" height="100" fill="rgba(251,191,36,0.7)" rx="2" />
-          {/* Crane arm */}
-          <Rect x="5" y="18" width="50" height="5" fill="rgba(251,191,36,0.8)" rx="2" />
-          {/* Cable */}
-          <Line x1="10" y1="23" x2="10" y2="65" stroke="rgba(255,255,255,0.3)" strokeWidth="1.5" />
-          {/* Hook */}
-          <Path d="M7 65 Q10 72 13 65" stroke="rgba(251,191,36,0.6)" strokeWidth="2" fill="none" />
-          {/* Top */}
-          <Circle cx="30" cy="18" r="4" fill="rgba(251,191,36,0.9)" />
+      {/* Foundation — concrete base */}
+      <Animated.View style={{
+        position: 'absolute', bottom: 40,
+        opacity: foundation,
+        transform: [{ scaleX: foundation }, { scaleY: foundation.interpolate({ inputRange: [0, 1], outputRange: [0, 1] }) }],
+      }}>
+        <Svg width={240} height={20} viewBox="0 0 240 20">
+          <Rect x="0" y="0" width="240" height="20" rx="4" fill="rgba(148,163,184,0.4)" />
+          <Rect x="0" y="0" width="240" height="8" rx="4" fill="rgba(148,163,184,0.2)" />
+          {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
+            <Line key={i} x1={30 * i + 15} y1="2" x2={30 * i + 15} y2="18" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+          ))}
         </Svg>
       </Animated.View>
 
-      {/* Building 1 — tall left */}
-      <Animated.View style={[svgStyles.building1, { transform: [{ translateY: build1.interpolate({ inputRange: [0, 1], outputRange: [140, 0] }) }], opacity: build1 }]}>
-        <Svg width={65} height={140} viewBox="0 0 65 140">
-          <Rect x="0" y="0" width="65" height="140" rx="6" fill="url(#b1)" opacity="0.85" />
-          {/* Windows */}
-          {[0, 1, 2, 3, 4, 5, 6].map(row =>
-            [0, 1, 2].map(col => (
-              <Rect key={`${row}${col}`} x={10 + col * 18} y={10 + row * 18} width="12" height="10" rx="2" fill="rgba(255,255,255,0.25)" />
-            ))
-          )}
-          {/* Antenna */}
-          <Line x1="32" y1="0" x2="32" y2="-15" stroke="rgba(255,255,255,0.4)" strokeWidth="2" />
-          <Circle cx="32" cy="-17" r="3" fill="rgba(251,191,36,0.8)" />
+      {/* Walls — main villa body */}
+      <Animated.View style={{
+        position: 'absolute', bottom: 58,
+        opacity: walls,
+        transform: [{ translateY: walls.interpolate({ inputRange: [0, 1], outputRange: [80, 0] }) }],
+      }}>
+        <Svg width={220} height={100} viewBox="0 0 220 100">
+          {/* Main body */}
+          <Rect x="20" y="10" width="180" height="90" rx="4" fill="rgba(14,165,233,0.3)" />
+          {/* Left wing */}
+          <Rect x="0" y="30" width="30" height="70" rx="4" fill="rgba(14,165,233,0.25)" />
+          {/* Right wing */}
+          <Rect x="190" y="30" width="30" height="70" rx="4" fill="rgba(14,165,233,0.25)" />
+          {/* Garage */}
+          <Rect x="155" y="55" width="35" height="45" rx="3" fill="rgba(14,165,233,0.15)" />
+          {/* Pillar lines */}
+          <Line x1="20" y1="10" x2="20" y2="100" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" />
+          <Line x1="200" y1="10" x2="200" y2="100" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" />
         </Svg>
       </Animated.View>
 
-      {/* Building 2 — center gold (shorter) */}
-      <Animated.View style={[svgStyles.building2, { transform: [{ translateY: build2.interpolate({ inputRange: [0, 1], outputRange: [110, 0] }) }], opacity: build2 }]}>
-        <Svg width={55} height={110} viewBox="0 0 55 110">
-          <Rect x="0" y="0" width="55" height="110" rx="6" fill="url(#b2)" opacity="0.8" />
-          {[0, 1, 2, 3, 4].map(row =>
-            [0, 1].map(col => (
-              <Rect key={`${row}${col}`} x={10 + col * 22} y={10 + row * 20} width="16" height="12" rx="2" fill="rgba(255,255,255,0.3)" />
-            ))
-          )}
-          {/* Roof detail */}
-          <Path d="M0 0 L27.5 -12 L55 0" fill="rgba(251,191,36,0.4)" />
+      {/* Roof */}
+      <Animated.View style={{
+        position: 'absolute', bottom: 148,
+        opacity: roof,
+        transform: [{ translateY: roof.interpolate({ inputRange: [0, 1], outputRange: [-30, 0] }) }],
+      }}>
+        <Svg width={240} height={50} viewBox="0 0 240 50">
+          {/* Main roof */}
+          <Path d="M10 50 L120 5 L230 50 Z" fill="rgba(251,191,36,0.5)" />
+          <Path d="M10 50 L120 5 L230 50" fill="none" stroke="rgba(251,191,36,0.7)" strokeWidth="2" />
+          {/* Left wing roof */}
+          <Path d="M0 50 L15 35 L35 50" fill="rgba(251,191,36,0.35)" />
+          {/* Right wing roof */}
+          <Path d="M205 50 L225 35 L240 50" fill="rgba(251,191,36,0.35)" />
+          {/* Chimney */}
+          <Rect x="160" y="15" width="12" height="25" rx="2" fill="rgba(148,163,184,0.4)" />
         </Svg>
       </Animated.View>
 
-      {/* Building 3 — right blue (tallest) */}
-      <Animated.View style={[svgStyles.building3, { transform: [{ translateY: build3.interpolate({ inputRange: [0, 1], outputRange: [170, 0] }) }], opacity: build3 }]}>
-        <Svg width={58} height={170} viewBox="0 0 58 170">
-          <Rect x="0" y="0" width="58" height="170" rx="8" fill="url(#b3)" opacity="0.85" />
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8].map(row =>
-            [0, 1, 2].map(col => (
-              <Rect key={`${row}${col}`} x={7 + col * 17} y={8 + row * 18} width="11" height="10" rx="2" fill="rgba(255,255,255,0.2)" />
-            ))
-          )}
-          {/* Spire */}
-          <Line x1="29" y1="0" x2="29" y2="-25" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5" />
-          <Circle cx="29" cy="-27" r="4" fill="rgba(14,165,233,0.8)" />
+      {/* Windows, door, details */}
+      <Animated.View style={{
+        position: 'absolute', bottom: 58,
+        opacity: details,
+        transform: [{ scale: details }],
+      }}>
+        <Svg width={220} height={100} viewBox="0 0 220 100">
+          {/* Windows — row 1 */}
+          <Rect x="40" y="18" width="22" height="18" rx="3" fill="rgba(125,211,252,0.4)" />
+          <Rect x="72" y="18" width="22" height="18" rx="3" fill="rgba(125,211,252,0.4)" />
+          <Rect x="126" y="18" width="22" height="18" rx="3" fill="rgba(125,211,252,0.4)" />
+          <Rect x="158" y="18" width="22" height="18" rx="3" fill="rgba(125,211,252,0.4)" />
+          {/* Window crosses */}
+          {[40, 72, 126, 158].map(x => (
+            <G key={x}>
+              <Line x1={x + 11} y1={18} x2={x + 11} y2={36} stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+              <Line x1={x} y1={27} x2={x + 22} y2={27} stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+            </G>
+          ))}
+          {/* Windows — row 2 */}
+          <Rect x="40" y="48" width="22" height="18" rx="3" fill="rgba(125,211,252,0.35)" />
+          <Rect x="126" y="48" width="22" height="18" rx="3" fill="rgba(125,211,252,0.35)" />
+          {/* Front door */}
+          <Rect x="90" y="50" width="24" height="50" rx="12" fill="rgba(251,191,36,0.5)" />
+          <Circle cx="108" cy="78" r="2" fill="rgba(255,255,255,0.4)" />
+          {/* Garage door lines */}
+          {[0, 1, 2, 3].map(i => (
+            <Line key={i} x1={158} y1={60 + i * 10} x2={188} y2={60 + i * 10} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+          ))}
+          {/* Balcony */}
+          <Rect x="82" y="42" width="40" height="3" rx="1.5" fill="rgba(255,255,255,0.15)" />
+          <Line x1="85" y1="42" x2="85" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+          <Line x1="90" y1="42" x2="90" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+          <Line x1="95" y1="42" x2="95" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+          <Line x1="100" y1="42" x2="100" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+          <Line x1="105" y1="42" x2="105" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+          <Line x1="110" y1="42" x2="110" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+          <Line x1="115" y1="42" x2="115" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+          <Line x1="119" y1="42" x2="119" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
         </Svg>
       </Animated.View>
 
-      {/* Sparkle particles */}
-      <Animated.View style={[svgStyles.sparkles, { opacity: sparkle }]}>
-        <Svg width={width * 0.85} height={280} viewBox="0 0 340 280">
+      {/* Garden & landscaping */}
+      <Animated.View style={{
+        position: 'absolute', bottom: 30,
+        opacity: garden,
+        transform: [{ scaleX: garden }],
+      }}>
+        <Svg width={300} height={40} viewBox="0 0 300 40">
+          {/* Driveway */}
+          <Path d="M130 0 L145 35 L175 35 L160 0 Z" fill="rgba(148,163,184,0.15)" />
+          {/* Bushes left */}
+          <Circle cx="30" cy="20" r="12" fill="rgba(34,197,94,0.25)" />
+          <Circle cx="52" cy="22" r="10" fill="rgba(34,197,94,0.2)" />
+          <Circle cx="15" cy="25" r="8" fill="rgba(34,197,94,0.15)" />
+          {/* Bushes right */}
+          <Circle cx="250" cy="20" r="12" fill="rgba(34,197,94,0.25)" />
+          <Circle cx="272" cy="22" r="10" fill="rgba(34,197,94,0.2)" />
+          <Circle cx="285" cy="25" r="8" fill="rgba(34,197,94,0.15)" />
+          {/* Trees */}
+          <Rect x="68" y="10" width="3" height="25" rx="1" fill="rgba(34,197,94,0.3)" />
+          <Circle cx="70" cy="6" r="10" fill="rgba(34,197,94,0.3)" />
+          <Rect x="228" y="10" width="3" height="25" rx="1" fill="rgba(34,197,94,0.3)" />
+          <Circle cx="230" cy="6" r="10" fill="rgba(34,197,94,0.3)" />
+          {/* Fence */}
+          {[0, 1, 2].map(i => (
+            <G key={`fl${i}`}>
+              <Rect x={85 + i * 12} y={18} width="2" height="18" rx="1" fill="rgba(255,255,255,0.08)" />
+            </G>
+          ))}
+          {[0, 1, 2].map(i => (
+            <G key={`fr${i}`}>
+              <Rect x={198 + i * 12} y={18} width="2" height="18" rx="1" fill="rgba(255,255,255,0.08)" />
+            </G>
+          ))}
+          {/* Pool */}
+          <Rect x="250" y="0" width="40" height="18" rx="9" fill="rgba(14,165,233,0.2)" stroke="rgba(14,165,233,0.15)" strokeWidth="1" />
+        </Svg>
+      </Animated.View>
+
+      {/* Sparkle particles — appear after construction */}
+      <Animated.View style={{ position: 'absolute', top: 0, left: 0, opacity: sparkle }}>
+        <Svg width={W} height={300} viewBox="0 0 360 300">
           {[
-            { cx: 60, cy: 60 }, { cx: 280, cy: 40 }, { cx: 170, cy: 30 },
-            { cx: 310, cy: 100 }, { cx: 30, cy: 130 }, { cx: 250, cy: 80 },
+            { cx: 50, cy: 50 }, { cx: 300, cy: 30 }, { cx: 180, cy: 20 },
+            { cx: 320, cy: 90 }, { cx: 30, cy: 110 }, { cx: 260, cy: 60 },
+            { cx: 140, cy: 70 }, { cx: 80, cy: 140 },
           ].map((s, i) => (
             <G key={i}>
               <Circle cx={s.cx} cy={s.cy} r="2" fill="rgba(251,191,36,0.6)" />
@@ -220,7 +293,7 @@ export default function Index() {
       <View style={styles.decorCircle3} />
 
       {/* Construction illustration */}
-      <BuildingConstruction />
+      <VillaConstruction />
 
       {/* Logo */}
       <Animated.View style={[styles.logoWrap, { transform: [{ scale: logoScale }], opacity: logoOpacity }]}>
@@ -254,42 +327,6 @@ export default function Index() {
     </Animated.View>
   );
 }
-
-const svgStyles = StyleSheet.create({
-  container: {
-    width: width * 0.85,
-    height: 280,
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    marginBottom: 40,
-  },
-  crane: {
-    position: 'absolute',
-    top: 20,
-    right: 50,
-    transformOrigin: 'bottom center',
-  },
-  building1: {
-    position: 'absolute',
-    bottom: 30,
-    left: 30,
-  },
-  building2: {
-    position: 'absolute',
-    bottom: 30,
-    left: width * 0.85 / 2 - 27,
-  },
-  building3: {
-    position: 'absolute',
-    bottom: 30,
-    right: 30,
-  },
-  sparkles: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-  },
-});
 
 const styles = StyleSheet.create({
   container: {
