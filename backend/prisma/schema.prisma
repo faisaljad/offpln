@@ -56,6 +56,14 @@ model PropertyType {
   properties Property[]
 }
 
+model Emirate {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  latitude  Float    @default(0)
+  longitude Float    @default(0)
+  createdAt DateTime @default(now())
+}
+
 model Property {
   id              String   @id @default(uuid())
   title           String

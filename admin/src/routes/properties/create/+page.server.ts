@@ -24,13 +24,17 @@ export const load: PageServerLoad = async ({ cookies }) => {
   if (!token) throw redirect(302, '/login');
 
   let propertyTypes: any[] = [];
+  let emirates: any[] = [];
   try {
-    propertyTypes = await apiFetch('/admin/property-types', { token });
+    [propertyTypes, emirates] = await Promise.all([
+      apiFetch('/admin/property-types', { token }).catch(() => []),
+      apiFetch('/admin/emirates', { token }).catch(() => []),
+    ]);
   } catch {
-    // ignore — dropdown will just be empty
+    // ignore — dropdowns will just be empty
   }
 
-  return { propertyTypes };
+  return { propertyTypes, emirates };
 };
 
 export const actions: Actions = {

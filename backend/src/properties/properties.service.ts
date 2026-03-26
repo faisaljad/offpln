@@ -124,6 +124,10 @@ export class PropertiesService {
     return results;
   }
 
+  async getEmirates() {
+    return this.prisma.emirate.findMany({ orderBy: { name: 'asc' } });
+  }
+
   generatePaymentSchedule(property: any, sharesPurchased: number) {
     const totalAmount = property.pricePerShare * sharesPurchased;
     const plan = property.paymentPlan as any;

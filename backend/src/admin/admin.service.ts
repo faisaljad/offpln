@@ -110,6 +110,21 @@ export class AdminService {
     return this.prisma.propertyType.delete({ where: { id } });
   }
 
+  // --- Emirates ---
+  async getEmirates() {
+    return this.prisma.emirate.findMany({ orderBy: { name: 'asc' } });
+  }
+
+  async createEmirate(name: string, latitude: number, longitude: number) {
+    return this.prisma.emirate.create({ data: { name, latitude, longitude } });
+  }
+
+  async deleteEmirate(id: string) {
+    const existing = await this.prisma.emirate.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Emirate not found');
+    return this.prisma.emirate.delete({ where: { id } });
+  }
+
   // Anonymized summary for mobile — investor sees their own name, others are masked
   async getPropertyPayoutSummary(propertyId: string, requestingUserId?: string) {
     const payouts = await this.prisma.payout.findMany({

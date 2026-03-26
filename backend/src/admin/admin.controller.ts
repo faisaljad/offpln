@@ -162,6 +162,22 @@ export class AdminController {
     return this.adminService.deletePropertyType(id);
   }
 
+  // --- Emirates ---
+  @Get('emirates')
+  getEmirates() {
+    return this.adminService.getEmirates();
+  }
+
+  @Post('emirates')
+  createEmirate(@Body() body: { name: string; latitude: number; longitude: number }) {
+    return this.adminService.createEmirate(body.name, body.latitude, body.longitude);
+  }
+
+  @Delete('emirates/:id')
+  deleteEmirate(@Param('id') id: string) {
+    return this.adminService.deleteEmirate(id);
+  }
+
   // --- Investments ---
   @Get('investments')
   getAllInvestments(@Query() query: any) {

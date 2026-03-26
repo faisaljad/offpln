@@ -93,15 +93,7 @@
     installments = installments.filter((_, idx) => idx !== i);
   }
 
-  const EMIRATES = [
-    { name: 'Abu Dhabi',       lat: 24.4539, lon: 54.3773 },
-    { name: 'Dubai',           lat: 25.2048, lon: 55.2708 },
-    { name: 'Sharjah',        lat: 25.3463, lon: 55.4209 },
-    { name: 'Ajman',          lat: 25.4052, lon: 55.5136 },
-    { name: 'Umm Al Quwain',  lat: 25.5640, lon: 55.5550 },
-    { name: 'Ras Al Khaimah', lat: 25.7895, lon: 55.9432 },
-    { name: 'Fujairah',       lat: 25.1288, lon: 56.3265 },
-  ];
+  $: emirates = data.emirates ?? [];
 
   let latitude: number | '' = '';
   let longitude: number | '' = '';
@@ -143,8 +135,8 @@
 
   function onEmirateChange(e: Event) {
     const sel = (e.target as HTMLSelectElement).value;
-    const em = EMIRATES.find((e) => e.name === sel);
-    if (em) { latitude = em.lat; longitude = em.lon; }
+    const em = emirates.find((e: any) => e.name === sel);
+    if (em) { latitude = em.latitude; longitude = em.longitude; }
   }
 
   $: paymentPlanJSON = JSON.stringify({ downPayment, installments }, null, 2);
@@ -235,7 +227,7 @@
             <label class="label">Emirate *</label>
             <select name="location" class="input" required onchange={onEmirateChange}>
               <option value="">Select emirate...</option>
-              {#each EMIRATES as em}
+              {#each emirates as em}
                 <option value={em.name} selected={(form?.values?.location ?? prop.location) === em.name}>{em.name}</option>
               {/each}
             </select>

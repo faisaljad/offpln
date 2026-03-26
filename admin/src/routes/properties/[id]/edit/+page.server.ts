@@ -24,11 +24,12 @@ export const load: PageServerLoad = async ({ cookies, params }) => {
   if (!token) throw redirect(302, '/login');
 
   try {
-    const [property, propertyTypes] = await Promise.all([
+    const [property, propertyTypes, emirates] = await Promise.all([
       apiFetch(`/admin/properties/${params.id}`, { token }),
       apiFetch('/admin/property-types', { token }).catch(() => []),
+      apiFetch('/admin/emirates', { token }).catch(() => []),
     ]);
-    return { property, propertyTypes };
+    return { property, propertyTypes, emirates };
   } catch (err: any) {
     if (err.status === 401) throw redirect(302, '/login');
     throw err;

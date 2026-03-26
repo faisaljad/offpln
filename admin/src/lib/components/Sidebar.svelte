@@ -6,12 +6,16 @@
   const nav = [
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
     { href: '/properties', label: 'Properties', icon: '🏗️' },
-    { href: '/property-types', label: 'Property Types', icon: '🏷️' },
     { href: '/investments', label: 'Investments', icon: '💼' },
     { href: '/investors', label: 'Investors', icon: '👥' },
     { href: '/transfers', label: 'Transfers', icon: '🔄' },
     { href: '/payments', label: 'Payment Reviews', icon: '💳' },
     { href: '/settings', label: 'Settings', icon: '⚙️' },
+  ];
+
+  const lookupItems = [
+    { href: '/lookups/property-types', label: 'Property Types', icon: '🏷️' },
+    { href: '/lookups/emirates', label: 'Emirates', icon: '📍' },
   ];
 
   function logout() {
@@ -40,6 +44,24 @@
         {item.label}
       </a>
     {/each}
+
+    <!-- Lookups section -->
+    <div class="pt-3">
+      <p class="px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-gray-500">Lookups</p>
+      {#each lookupItems as item}
+        <a
+          href={item.href}
+          class="flex items-center gap-3 px-3 py-2.5 pl-6 rounded-lg text-sm font-medium transition-colors"
+          class:bg-primary-600={$page.url.pathname.startsWith(item.href)}
+          class:text-white={$page.url.pathname.startsWith(item.href)}
+          class:text-gray-400={!$page.url.pathname.startsWith(item.href)}
+          class:hover:bg-gray-800={!$page.url.pathname.startsWith(item.href)}
+        >
+          <span>{item.icon}</span>
+          {item.label}
+        </a>
+      {/each}
+    </div>
   </nav>
 
   <div class="px-3 py-4 border-t border-gray-800">
