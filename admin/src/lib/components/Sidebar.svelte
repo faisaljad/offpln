@@ -21,8 +21,8 @@
     { href: '/lookups/emirates', label: 'Emirates', icon: '📍' },
   ];
 
-  // Prefer server-side user data (from cookie) over client-side auth store
-  $: user = ($page.data as any)?.user ?? $auth.user;
+  // Read from root layout server data (always available)
+  $: user = ($page.data as any)?.currentUser ?? $auth.user;
   $: isSuperAdmin = user?.role === 'SUPER_ADMIN';
   $: userPermissions = (user?.permissions as string[]) ?? [];
 
