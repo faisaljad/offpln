@@ -6,5 +6,8 @@ export const load: LayoutServerLoad = async ({ cookies, url }) => {
   if (!token && url.pathname !== '/login') {
     throw redirect(302, '/login');
   }
-  return { token };
+  const userStr = cookies.get('admin_user');
+  let user = null;
+  try { user = userStr ? JSON.parse(userStr) : null; } catch {}
+  return { token, user };
 };

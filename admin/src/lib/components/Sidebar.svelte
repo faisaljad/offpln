@@ -2,6 +2,7 @@
   import { page } from '$app/stores';
   import { auth } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
+  import { browser } from '$app/environment';
 
   const nav = [
     { href: '/dashboard', label: 'Dashboard', icon: '📊', perm: 'dashboard' },
@@ -20,7 +21,8 @@
     { href: '/lookups/emirates', label: 'Emirates', icon: '📍' },
   ];
 
-  $: user = $auth.user;
+  // Prefer server-side user data (from cookie) over client-side auth store
+  $: user = ($page.data as any)?.user ?? $auth.user;
   $: isSuperAdmin = user?.role === 'SUPER_ADMIN';
   $: userPermissions = (user?.permissions as string[]) ?? [];
 
