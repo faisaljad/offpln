@@ -249,23 +249,33 @@ export class AdminController {
     return this.usersService.findAll(query.page, query.limit, query.search);
   }
 
-  // --- Admin User Management ---
+  // --- Admin User Management (SUPER_ADMIN only) ---
   @Get('users/admins')
+  @Roles('SUPER_ADMIN')
   getAdminUsers() {
     return this.adminService.getAdminUsers();
   }
 
   @Post('users/admins')
-  createAdminUser(@Body() body: { name: string; email: string; password: string }) {
-    return this.adminService.createAdminUser(body.name, body.email, body.password);
+  @Roles('SUPER_ADMIN')
+  createAdminUser(@Body() body: { name: string; email: string; password: string; role?: string; permissions?: string[] }) {
+    return this.adminService.createAdminUser(body.name, body.email, body.password, body.role, body.permissions);
+  }
+
+  @Patch('users/admins/:id')
+  @Roles('SUPER_ADMIN')
+  updateAdminUser(@Param('id') id: string, @Body() body: { role?: string; permissions?: string[] }) {
+    return this.adminService.updateAdminUser(id, body);
   }
 
   @Patch('users/admins/:id/password')
+  @Roles('SUPER_ADMIN')
   changeAdminPassword(@Param('id') id: string, @Body('newPassword') newPassword: string) {
     return this.adminService.changeAdminPassword(id, newPassword);
   }
 
   @Delete('users/admins/:id')
+  @Roles('SUPER_ADMIN')
   deleteAdminUser(@Param('id') id: string) {
     return this.adminService.deleteAdminUser(id);
   }

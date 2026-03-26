@@ -193,18 +193,32 @@ export class AdminService {
   async getAdminUsers() {
     return this.prisma.user.findMany({
       where: { role: { in: ['ADMIN', 'SUPER_ADMIN'] } },
-      select: { id: true, name: true, email: true, role: true, isVerified: true, createdAt: true },
+      select: { id: true, name: true, email: true, role: true, permissions: true, isVerified: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async createAdminUser(name: string, email: string, password: string) {
+  async createAdminUser(name: string, email: string, password: string, role: string = 'ADMIN', permissions: string[] = []) {
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) throw new ConflictException('A user with this email already exists');
+    const validRole = role === 'SUPER_ADMIN' ? 'SUPER_ADMIN' : 'ADMIN';
     const hashedPassword = await bcrypt.hash(password, 10);
     return this.prisma.user.create({
-      data: { name, email, password: hashedPassword, role: 'ADMIN', isVerified: true },
-      select: { id: true, name: true, email: true, role: true, isVerified: true, createdAt: true },
+      data: { name, email, password: hashedPassword, role: validRole, permissions, isVerified: true },
+      select: { id: true, name: true, email: true, role: true, permissions: true, isVerified: true, createdAt: true },
+    });
+  }
+
+  async updateAdminUser(userId: string, data: { role?: string; permissions?: string[] }) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+    const updateData: any = {};
+    if (data.role) updateData.role = data.role === 'SUPER_ADMIN' ? 'SUPER_ADMIN' : 'ADMIN';
+    if (data.permissions) updateData.permissions = data.permissions;
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: { id: true, name: true, email: true, role: true, permissions: true },
     });
   }
 

@@ -25,6 +25,9 @@ export const actions: Actions = {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
 
+    const role = formData.get('role') as string || 'ADMIN';
+    const permissions = formData.getAll('permissions') as string[];
+
     if (!name || !email || !password) {
       return fail(400, { error: 'Name, email, and password are required' });
     }
@@ -32,7 +35,7 @@ export const actions: Actions = {
     try {
       await apiFetch('/admin/users/admins', {
         method: 'POST',
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, role, permissions }),
         token,
       });
       return { success: true, message: 'Admin user created successfully' };
@@ -62,6 +65,29 @@ export const actions: Actions = {
       return { success: true, message: 'Password changed successfully' };
     } catch (err: any) {
       return fail(err.status || 500, { error: err.message || 'Failed to change password' });
+    }
+  },
+
+  updatePermissions: async ({ request, cookies }) => {
+    const token = cookies.get('admin_token');
+    if (!token) throw redirect(302, '/login');
+
+    const formData = await request.formData();
+    const id = formData.get('id') as string;
+    const role = formData.get('role') as string;
+    const permissions = formData.getAll('permissions') as string[];
+
+    if (!id) return fail(400, { error: 'User ID is required' });
+
+    try {
+      await apiFetch(`/admin/users/admins/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ role, permissions }),
+        token,
+      });
+      return { success: true, message: 'Permissions updated successfully' };
+    } catch (err: any) {
+      return fail(err.status || 500, { error: err.message || 'Failed to update permissions' });
     }
   },
 

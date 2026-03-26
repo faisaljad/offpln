@@ -3,7 +3,7 @@ import { browser } from '$app/environment';
 
 interface AuthState {
   token: string | null;
-  user: { id: string; name: string; email: string; role: string } | null;
+  user: { id: string; name: string; email: string; role: string; permissions?: string[] } | null;
 }
 
 const initial: AuthState = {
