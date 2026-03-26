@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Toast from 'react-native-toast-message';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import { toastConfig } from '../components/ToastConfig';
 import { useAuthStore } from '../store/auth';
 import { api } from '../services/api';
@@ -43,11 +44,15 @@ async function registerForPushNotifications() {
     });
   }
 
-  const tokenData = await Notifications.getExpoPushTokenAsync({
-    projectId: '9e2a1b3c-4d5e-6f7a-8b9c-0d1e2f3a4b5c', // placeholder — replace with your Expo project ID
-  });
-
-  return tokenData.data;
+  try {
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+    const tokenData = await Notifications.getExpoPushTokenAsync(
+      projectId ? { projectId } : undefined,
+    );
+    return tokenData.data;
+  } catch {
+    return null;
+  }
 }
 
 export default function RootLayout() {
