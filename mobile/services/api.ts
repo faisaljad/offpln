@@ -81,6 +81,7 @@ export const api = {
     request('/auth/verify-login-otp', { method: 'POST', body: JSON.stringify({ email, code }) }, false),
 
   // Properties
+  getEmirates: () => request<any[]>('/properties/emirates', {}, false),
   getProperties: (params?: Record<string, any>) => {
     const q = params ? '?' + new URLSearchParams(params as any).toString() : '';
     return request(`/properties${q}`, {}, false);

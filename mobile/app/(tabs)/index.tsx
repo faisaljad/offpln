@@ -33,21 +33,11 @@ interface Property {
   status: string;
 }
 
-const EMIRATES = [
-  'All Emirates',
-  'Abu Dhabi',
-  'Dubai',
-  'Sharjah',
-  'Ajman',
-  'Umm Al Quwain',
-  'Ras Al Khaimah',
-  'Fujairah',
-];
-
 export default function PropertiesScreen() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [search, setSearch] = useState('');
   const [emirate, setEmirate] = useState('All Emirates');
+  const [emiratesList, setEmiratesList] = useState<string[]>(['All Emirates']);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -78,6 +68,13 @@ export default function PropertiesScreen() {
       setRefreshing(false);
     }
   }
+
+  useEffect(() => {
+    api.getEmirates().then((res: any) => {
+      const names = (Array.isArray(res) ? res : []).map((e: any) => e.name);
+      setEmiratesList(['All Emirates', ...names]);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     setPage(1);
@@ -354,7 +351,7 @@ export default function PropertiesScreen() {
                 <Ionicons name="close" size={20} color="#64748b" />
               </TouchableOpacity>
             </View>
-            {EMIRATES.map((em) => (
+            {emiratesList.map((em) => (
               <TouchableOpacity
                 key={em}
                 style={[
