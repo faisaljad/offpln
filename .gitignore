@@ -35,3 +35,6 @@ npm-debug.log*
 # Prisma
 backend/prisma/*.db
 backend/prisma/*.db-journal
+
+# mobile
+mobile/
