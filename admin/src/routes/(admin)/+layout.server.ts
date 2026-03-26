@@ -6,8 +6,19 @@ export const load: LayoutServerLoad = async ({ cookies, url }) => {
   if (!token && url.pathname !== '/login') {
     throw redirect(302, '/login');
   }
+
+  // Read user from JSON cookie
   const userStr = cookies.get('admin_user');
-  let user = null;
+  let user: any = null;
   try { user = userStr ? JSON.parse(userStr) : null; } catch {}
-  return { token, user };
+
+  // Fallback: read role/permissions from simple cookies
+  const role = cookies.get('admin_role') || user?.role || 'ADMIN';
+  const permsStr = cookies.get('admin_perms') || '';
+  const permissions = permsStr ? permsStr.split(',') : (user?.permissions || []);
+
+  return {
+    token,
+    user: user ? { ...user, role, permissions } : { role, permissions },
+  };
 };

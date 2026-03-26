@@ -37,10 +37,12 @@ export const actions: Actions = {
         return fail(403, { error: 'Access denied. Admin only.', email: result.data.email });
       }
 
+      const isProduction = !!env.VERCEL || env.NODE_ENV === 'production';
+
       cookies.set('admin_token', accessToken, {
         path: '/',
         httpOnly: true,
-        secure: env.NODE_ENV === 'production',
+        secure: isProduction,
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7,
       });
@@ -48,7 +50,24 @@ export const actions: Actions = {
       cookies.set('admin_user', JSON.stringify(user), {
         path: '/',
         httpOnly: false,
-        secure: env.NODE_ENV === 'production',
+        secure: isProduction,
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      // Small cookie for role/permissions (avoids JSON parsing issues)
+      cookies.set('admin_role', user.role, {
+        path: '/',
+        httpOnly: false,
+        secure: isProduction,
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7,
+      });
+
+      cookies.set('admin_perms', (user.permissions || []).join(','), {
+        path: '/',
+        httpOnly: false,
+        secure: isProduction,
         sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 7,
       });
