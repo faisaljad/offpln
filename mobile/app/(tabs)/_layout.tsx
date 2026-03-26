@@ -1,7 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Platform, StyleSheet, View } from 'react-native';
-import { BlurView } from 'expo-blur';
 
 export default function TabsLayout() {
   return (
@@ -20,42 +19,20 @@ export default function TabsLayout() {
           marginTop: 4,
         },
         tabBarStyle: {
-          position: 'absolute',
-          bottom: Platform.OS === 'ios' ? 28 : 16,
-          left: 20,
-          right: 20,
-          height: 70,
-          borderRadius: 24,
-          backgroundColor: Platform.OS === 'ios' ? 'rgba(255,255,255,0.85)' : '#ffffff',
+          backgroundColor: '#ffffff',
           borderTopWidth: 0,
+          height: Platform.OS === 'ios' ? 88 : 70,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 8,
+          paddingTop: 8,
           shadowColor: '#0c4a6e',
-          shadowOffset: { width: 0, height: 8 },
-          shadowOpacity: 0.08,
-          shadowRadius: 24,
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.06,
+          shadowRadius: 16,
           elevation: 12,
-          paddingBottom: 8,
-          paddingTop: 4,
         },
-        tabBarBackground: () =>
-          Platform.OS === 'ios' ? (
-            <BlurView
-              intensity={60}
-              tint="light"
-              style={{
-                ...StyleSheet.absoluteFillObject,
-                borderRadius: 24,
-                overflow: 'hidden',
-              }}
-            />
-          ) : (
-            <View
-              style={{
-                ...StyleSheet.absoluteFillObject,
-                borderRadius: 24,
-                backgroundColor: '#ffffff',
-              }}
-            />
-          ),
+        tabBarBackground: () => (
+          <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: '#ffffff' }} />
+        ),
         headerStyle: { backgroundColor: '#fff' },
         headerTitleStyle: { fontWeight: '700', fontSize: 18 },
         headerShadowVisible: false,
