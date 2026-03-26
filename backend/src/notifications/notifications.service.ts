@@ -88,46 +88,105 @@ export class NotificationsService {
     const prefs = await this.getPreferences(userId);
     if (prefs[type] === false) return null; // User opted out
 
-    return this.prisma.notification.create({
+    const notification = await this.prisma.notification.create({
       data: { userId, type, title, body, data },
     });
+
+    // Fire-and-forget push notification
+    this.sendPushNotification(userId, title, body, data).catch(() => {});
+
+    return notification;
+  }
+
+  async registerPushToken(userId: string, token: string) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { pushToken: token },
+    });
+  }
+
+  private async sendPushNotification(userId: string, title: string, body: string, data?: any) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { pushToken: true },
+      });
+
+      if (!user?.pushToken || !user.pushToken.startsWith('ExponentPushToken')) return;
+
+      await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: user.pushToken,
+          title,
+          body,
+          data,
+          sound: 'default',
+        }),
+      });
+    } catch {
+      // Silently ignore push notification failures
+    }
   }
 
   async sendToMany(userIds: string[], type: string, title: string, body: string, data?: any) {
     // Filter users who have this notification enabled
     const users = await this.prisma.user.findMany({
       where: { id: { in: userIds } },
-      select: { id: true, notificationPrefs: true },
+      select: { id: true, notificationPrefs: true, pushToken: true },
     });
 
-    const eligibleIds = users.filter((u) => {
+    const eligible = users.filter((u) => {
       const prefs = { ...DEFAULT_PREFS, ...((u.notificationPrefs as any) || {}) };
       return prefs[type] !== false;
-    }).map((u) => u.id);
+    });
+
+    const eligibleIds = eligible.map((u) => u.id);
 
     if (eligibleIds.length === 0) return [];
 
-    return this.prisma.notification.createMany({
+    const result = await this.prisma.notification.createMany({
       data: eligibleIds.map((userId) => ({ userId, type, title, body, data })),
     });
+
+    // Fire-and-forget push notifications for all eligible users
+    for (const u of eligible) {
+      if (u.pushToken?.startsWith('ExponentPushToken')) {
+        this.sendPushNotificationDirect(u.pushToken, title, body, data).catch(() => {});
+      }
+    }
+
+    return result;
   }
 
   async sendToAllInvestors(type: string, title: string, body: string, data?: any) {
     const users = await this.prisma.user.findMany({
       where: { role: 'USER' },
-      select: { id: true, notificationPrefs: true },
+      select: { id: true, notificationPrefs: true, pushToken: true },
     });
 
-    const eligibleIds = users.filter((u) => {
+    const eligible = users.filter((u) => {
       const prefs = { ...DEFAULT_PREFS, ...((u.notificationPrefs as any) || {}) };
       return prefs[type] !== false;
-    }).map((u) => u.id);
+    });
+
+    const eligibleIds = eligible.map((u) => u.id);
 
     if (eligibleIds.length === 0) return [];
 
-    return this.prisma.notification.createMany({
+    const result = await this.prisma.notification.createMany({
       data: eligibleIds.map((userId) => ({ userId, type, title, body, data })),
     });
+
+    // Fire-and-forget push notifications for all eligible users
+    for (const u of eligible) {
+      if (u.pushToken?.startsWith('ExponentPushToken')) {
+        this.sendPushNotificationDirect(u.pushToken, title, body, data).catch(() => {});
+      }
+    }
+
+    return result;
   }
 
   // --- Auto notifications ---
@@ -227,6 +286,24 @@ export class NotificationsService {
       this.prisma.notification.count(),
     ]);
     return { notifications, total, page, limit, pages: Math.ceil(total / limit) };
+  }
+
+  private async sendPushNotificationDirect(pushToken: string, title: string, body: string, data?: any) {
+    try {
+      await fetch('https://exp.host/--/api/v2/push/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: pushToken,
+          title,
+          body,
+          data,
+          sound: 'default',
+        }),
+      });
+    } catch {
+      // Silently ignore push notification failures
+    }
   }
 
   async adminBroadcast(title: string, body: string) {

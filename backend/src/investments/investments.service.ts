@@ -6,12 +6,14 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { PropertiesService } from '../properties/properties.service';
 import { CreateInvestmentDto } from './dto/create-investment.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class InvestmentsService {
   constructor(
     private prisma: PrismaService,
     private propertiesService: PropertiesService,
+    private notifications: NotificationsService,
   ) {}
 
   async create(userId: string, dto: CreateInvestmentDto) {
@@ -187,10 +189,22 @@ export class InvestmentsService {
         });
       }
 
-      return tx.investment.update({
+      const updated = await tx.investment.update({
         where: { id },
         data: { status: status as any },
       });
+
+      // Notify the investor about the status change
+      try {
+        this.notifications.notifyInvestmentUpdate(
+          investment.userId,
+          investment.property.title,
+          status,
+          investment.id,
+        ).catch(() => {});
+      } catch {}
+
+      return updated;
     });
   }
 }

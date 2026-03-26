@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class AdminService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async getDashboardStats() {
     const [
@@ -116,6 +120,8 @@ export class AdminService {
       where: { propertyId, status: 'APPROVED' },
     });
 
+    const payoutData: { userId: string; totalReturn: number; payoutId?: string }[] = [];
+
     await this.prisma.$transaction(async (tx) => {
       await tx.property.update({
         where: { id: propertyId },
@@ -128,13 +134,22 @@ export class AdminService {
         const profitAmount   = investorReturn - inv.totalAmount;
         const totalReturn    = investorReturn;
 
-        await tx.payout.upsert({
+        const payout = await tx.payout.upsert({
           where: { investmentId: inv.id },
           create: { investmentId: inv.id, propertyId, userId: inv.userId, profitAmount, totalReturn },
           update: { profitAmount, totalReturn },
         });
+
+        payoutData.push({ userId: inv.userId, totalReturn, payoutId: payout.id });
       }
     });
+
+    // Notify each investor about their payout (fire-and-forget)
+    for (const p of payoutData) {
+      try {
+        this.notifications.notifyPayout(p.userId, property.title, p.totalReturn, p.payoutId!).catch(() => {});
+      } catch {}
+    }
 
     return { success: true, payoutsCreated: investments.length };
   }
@@ -151,12 +166,22 @@ export class AdminService {
   }
 
   async markPayoutPaid(payoutId: string, receiptUrl?: string) {
-    const payout = await this.prisma.payout.findUnique({ where: { id: payoutId } });
+    const payout = await this.prisma.payout.findUnique({
+      where: { id: payoutId },
+      select: { id: true, userId: true, status: true, totalReturn: true },
+    });
     if (!payout) throw new NotFoundException('Payout not found');
-    return this.prisma.payout.update({
+    const updated = await this.prisma.payout.update({
       where: { id: payoutId },
       data: { status: 'PAID', paidAt: new Date(), receiptUrl: receiptUrl ?? null },
     });
+
+    // Notify investor that payout has been marked as paid
+    try {
+      this.notifications.send(payout.userId, 'payout', 'Payout Received', 'Your payout has been marked as paid').catch(() => {});
+    } catch {}
+
+    return updated;
   }
 
   // --- Property Types ---

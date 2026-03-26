@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 const TRANSFER_INCLUDE = {
   investment: {
@@ -25,7 +26,10 @@ const TRANSFER_INCLUDE = {
 export class TransfersService {
   private transporter: nodemailer.Transporter | null = null;
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {
     const host = process.env.SMTP_HOST;
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
@@ -110,11 +114,19 @@ export class TransfersService {
     if (!transfer) throw new NotFoundException('Listing not found or no longer available');
     if (transfer.sellerId === buyerId) throw new ForbiddenException('You cannot buy your own listing');
 
-    return this.prisma.shareTransfer.update({
+    const updated = await this.prisma.shareTransfer.update({
       where: { id: transferId },
       data: { buyerId, status: 'REQUESTED' },
       include: TRANSFER_INCLUDE,
     });
+
+    // Notify seller that someone requested to buy
+    try {
+      const propertyTitle = (updated as any).investment?.property?.title ?? 'your investment';
+      this.notifications.notifyTransferUpdate(transfer.sellerId, propertyTitle, 'REQUESTED', transferId).catch(() => {});
+    } catch {}
+
+    return updated;
   }
 
   // ── My transfers (as seller or buyer) ────────────────────────────────────
@@ -143,6 +155,7 @@ export class TransfersService {
   async confirmWithOtp(sellerId: string, transferId: string, code: string) {
     const transfer = await this.prisma.shareTransfer.findFirst({
       where: { id: transferId, sellerId, status: 'OTP_PENDING' },
+      include: TRANSFER_INCLUDE,
     });
     if (!transfer) throw new NotFoundException('Transfer not found or not awaiting confirmation');
     if (transfer.otpCode !== code) throw new UnauthorizedException('Invalid OTP code');
@@ -161,6 +174,13 @@ export class TransfersService {
         data: { status: 'COMPLETED', otpCode: null },
       }),
     ]);
+
+    // Notify both seller and buyer about completed transfer
+    try {
+      const propertyTitle = (transfer as any).investment?.property?.title ?? 'your investment';
+      this.notifications.notifyTransferUpdate(transfer.sellerId, propertyTitle, 'COMPLETED', transferId).catch(() => {});
+      this.notifications.notifyTransferUpdate(transfer.buyerId, propertyTitle, 'COMPLETED', transferId).catch(() => {});
+    } catch {}
 
     return { success: true };
   }
@@ -214,11 +234,18 @@ export class TransfersService {
       where: { id: transferId, status: 'PENDING_APPROVAL' },
     });
     if (!transfer) throw new NotFoundException('Pending listing not found');
-    return this.prisma.shareTransfer.update({
+    const updated = await this.prisma.shareTransfer.update({
       where: { id: transferId },
       data: { status: 'LISTED' },
       include: TRANSFER_INCLUDE,
     });
+
+    try {
+      const propertyTitle = (updated as any).investment?.property?.title ?? 'your investment';
+      this.notifications.notifyTransferUpdate(transfer.sellerId, propertyTitle, 'LISTED', transferId).catch(() => {});
+    } catch {}
+
+    return updated;
   }
 
   // ── Admin: approve transfer (REQUESTED → OTP_PENDING) → send OTP to seller
@@ -261,11 +288,18 @@ export class TransfersService {
       where: { id: transferId, status: { in: ['PENDING_APPROVAL', 'LISTED'] } },
     });
     if (!transfer) throw new NotFoundException('Transfer not found or not in a rejectable listing state');
-    return this.prisma.shareTransfer.update({
+    const updated = await this.prisma.shareTransfer.update({
       where: { id: transferId },
       data: { status: 'REJECTED', rejectionNote: note ?? null },
       include: TRANSFER_INCLUDE,
     });
+
+    try {
+      const propertyTitle = (updated as any).investment?.property?.title ?? 'your investment';
+      this.notifications.notifyTransferUpdate(transfer.sellerId, propertyTitle, 'REJECTED', transferId).catch(() => {});
+    } catch {}
+
+    return updated;
   }
 
   // ── Admin: reject buyer request (REQUESTED → LISTED) ─────────────────────
@@ -274,11 +308,20 @@ export class TransfersService {
       where: { id: transferId, status: 'REQUESTED' },
     });
     if (!transfer) throw new NotFoundException('Buy request not found');
-    return this.prisma.shareTransfer.update({
+    const updated = await this.prisma.shareTransfer.update({
       where: { id: transferId },
       data: { status: 'LISTED', buyerId: null, rejectionNote: note ?? null },
       include: TRANSFER_INCLUDE,
     });
+
+    try {
+      if (transfer.buyerId) {
+        const propertyTitle = (updated as any).investment?.property?.title ?? 'your investment';
+        this.notifications.notifyTransferUpdate(transfer.buyerId, propertyTitle, 'REQUEST_REJECTED', transferId).catch(() => {});
+      }
+    } catch {}
+
+    return updated;
   }
 
   // ── Email ─────────────────────────────────────────────────────────────────

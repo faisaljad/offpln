@@ -155,4 +155,5 @@ export const api = {
   markAllNotificationsRead: () => request('/notifications/mark-all-read', { method: 'POST' }),
   getNotificationPrefs: () => request('/notifications/preferences'),
   updateNotificationPrefs: (prefs: Record<string, boolean>) => request('/notifications/preferences', { method: 'PATCH', body: JSON.stringify(prefs) }),
+  registerPushToken: (token: string) => request('/notifications/push-token', { method: 'POST', body: JSON.stringify({ token }) }),
 };

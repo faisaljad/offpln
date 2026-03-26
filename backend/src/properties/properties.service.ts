@@ -2,10 +2,14 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { QueryPropertyDto } from './dto/query-property.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class PropertiesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   async findAll(query: QueryPropertyDto) {
     const {
@@ -88,13 +92,22 @@ export class PropertiesService {
 
   async create(dto: CreatePropertyDto) {
     const pricePerShare = dto.totalPrice / dto.totalShares;
-    return this.prisma.property.create({
+    const property = await this.prisma.property.create({
       data: {
         ...dto,
         pricePerShare,
         availableShares: dto.totalShares,
       },
     });
+
+    // Notify all investors about the new property (only if ACTIVE)
+    if (property.status === 'ACTIVE') {
+      try {
+        this.notifications.notifyNewProperty(property.id, property.title).catch(() => {});
+      } catch {}
+    }
+
+    return property;
   }
 
   async update(id: string, dto: Partial<CreatePropertyDto>) {

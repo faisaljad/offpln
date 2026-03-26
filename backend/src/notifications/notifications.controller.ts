@@ -37,4 +37,9 @@ export class NotificationsController {
   markAllAsRead(@CurrentUser() user: any) {
     return this.notificationsService.markAllAsRead(user.sub);
   }
+
+  @Post('push-token')
+  registerPushToken(@CurrentUser() user: any, @Body() body: { token: string }) {
+    return this.notificationsService.registerPushToken(user.sub, body.token);
+  }
 }
