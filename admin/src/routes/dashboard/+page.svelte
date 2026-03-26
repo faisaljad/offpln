@@ -30,13 +30,6 @@
   $: monthlyData = (stats.monthlyInvestments ?? []).slice(-6);
   $: maxAmount = Math.max(...monthlyData.map((m: any) => m.amount), 1);
 
-  const statusColors: Record<string, string> = {
-    ACTIVE: 'bg-green-100 text-green-800',
-    SOLD_OUT: 'bg-red-100 text-red-800',
-    COMING_SOON: 'bg-yellow-100 text-yellow-800',
-    SOLD: 'bg-blue-100 text-blue-800',
-    ARCHIVED: 'bg-gray-100 text-gray-800',
-  };
 </script>
 
 <svelte:head>
@@ -89,60 +82,69 @@
     />
   </div>
 
-  <!-- Monthly Investments Chart + Property Status Breakdown -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Monthly Investments Bar Chart -->
-    <div class="card lg:col-span-2">
-      <h2 class="text-lg font-semibold text-gray-900 mb-6">Monthly Investments</h2>
-      {#if monthlyData.length === 0}
-        <p class="text-gray-400 text-sm">No monthly data available.</p>
-      {:else}
-        <div class="space-y-4">
-          {#each monthlyData as m}
-            <div class="flex items-center gap-4">
-              <span class="text-sm text-gray-600 font-medium w-20 shrink-0">{m.month}</span>
-              <div class="flex-1">
-                <div class="relative h-8 bg-gray-100 rounded-lg overflow-hidden">
-                  <div
-                    class="absolute inset-y-0 left-0 bg-primary-500 rounded-lg transition-all duration-500"
-                    style="width: {Math.max((m.amount / maxAmount) * 100, 2)}%"
-                  ></div>
-                  <div class="absolute inset-0 flex items-center px-3">
-                    <span class="text-xs font-semibold {m.amount / maxAmount > 0.4 ? 'text-white' : 'text-gray-700'}"
-                      >{m.count} investments</span
-                    >
-                  </div>
+  <!-- Monthly Investments Line Chart -->
+  <div class="card">
+    <h2 class="text-lg font-semibold text-gray-900 mb-6">Monthly Investments</h2>
+    {#if monthlyData.length === 0}
+      <p class="text-gray-400 text-sm">No monthly data available.</p>
+    {:else}
+      <div style="height: 260px; position: relative;">
+        <!-- Y-axis labels -->
+        <div style="position: absolute; left: 0; top: 0; bottom: 32px; width: 60px; display: flex; flex-direction: column; justify-content: space-between;">
+          {#each [maxAmount, Math.round(maxAmount * 0.66), Math.round(maxAmount * 0.33), 0] as tick}
+            <span style="font-size: 11px; color: #94a3b8; text-align: right; padding-right: 8px;">AED {formatAmount(tick)}</span>
+          {/each}
+        </div>
+        <!-- Chart area -->
+        <div style="position: absolute; left: 64px; right: 0; top: 0; bottom: 32px; border-left: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb;">
+          <!-- Grid lines -->
+          {#each [0.33, 0.66] as pct}
+            <div style="position: absolute; left: 0; right: 0; bottom: {pct * 100}%; height: 1px; background: #f1f5f9;"></div>
+          {/each}
+          <!-- Line + Points -->
+          <svg viewBox="0 0 {monthlyData.length * 100} 200" preserveAspectRatio="none" style="width: 100%; height: 100%; overflow: visible;">
+            <!-- Area fill -->
+            <path
+              d="M {monthlyData.map((m, i) => `${i * (100 * monthlyData.length / monthlyData.length) / monthlyData.length * monthlyData.length + 50} ${200 - (m.amount / maxAmount) * 190}`).join(' L ')} L {(monthlyData.length - 1) * 100 + 50} 200 L 50 200 Z"
+              fill="url(#areaGrad)" opacity="0.15"
+            />
+            <defs>
+              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#0284c7" />
+                <stop offset="100%" stop-color="#0284c7" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <!-- Line -->
+            <polyline
+              points={monthlyData.map((m, i) => `${i * 100 + 50},${200 - (m.amount / maxAmount) * 190}`).join(' ')}
+              fill="none" stroke="#0284c7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+            />
+            <!-- Points -->
+            {#each monthlyData as m, i}
+              <circle cx={i * 100 + 50} cy={200 - (m.amount / maxAmount) * 190} r="5" fill="#fff" stroke="#0284c7" stroke-width="2.5" />
+            {/each}
+          </svg>
+          <!-- Tooltips on hover -->
+          <div style="position: absolute; inset: 0; display: flex;">
+            {#each monthlyData as m, i}
+              <div style="flex: 1; position: relative; cursor: pointer;" class="group">
+                <div style="display: none; position: absolute; bottom: {(m.amount / maxAmount) * 100 + 8}%; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 4px 10px; border-radius: 8px; font-size: 11px; white-space: nowrap; z-index: 10;" class="group-hover:!block">
+                  {m.count} inv · AED {formatAmount(m.amount)}
                 </div>
               </div>
-              <span class="text-sm font-semibold text-gray-700 w-24 text-right shrink-0"
-                >AED {formatAmount(m.amount)}</span
-              >
+            {/each}
+          </div>
+        </div>
+        <!-- X-axis labels -->
+        <div style="position: absolute; left: 64px; right: 0; bottom: 0; height: 28px; display: flex;">
+          {#each monthlyData as m}
+            <div style="flex: 1; text-align: center; font-size: 12px; color: #64748b; font-weight: 500; padding-top: 8px;">
+              {m.month}
             </div>
           {/each}
         </div>
-      {/if}
-    </div>
-
-    <!-- Property Status Breakdown -->
-    <div class="card">
-      <h2 class="text-lg font-semibold text-gray-900 mb-6">Property Status</h2>
-      {#if (stats.propertyStatusBreakdown ?? []).length === 0}
-        <p class="text-gray-400 text-sm">No data available.</p>
-      {:else}
-        <div class="space-y-3">
-          {#each stats.propertyStatusBreakdown as item}
-            <div class="flex items-center justify-between">
-              <span
-                class="text-xs font-medium px-3 py-1.5 rounded-full {statusColors[item.status] ?? 'bg-gray-100 text-gray-800'}"
-              >
-                {item.status.replace('_', ' ')}
-              </span>
-              <span class="text-lg font-bold text-gray-900">{item.count}</span>
-            </div>
-          {/each}
-        </div>
-      {/if}
-    </div>
+      </div>
+    {/if}
   </div>
 
   <!-- Recent Investments Table -->
