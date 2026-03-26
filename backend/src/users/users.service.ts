@@ -26,9 +26,10 @@ export class UsersService {
     page = Number(page) || 1;
     limit = Number(limit) || 20;
     const skip = (page - 1) * limit;
+    const baseFilter = { role: 'USER' as const };
     const where: any = search
-      ? { OR: [{ name: { contains: search, mode: 'insensitive' } }, { email: { contains: search, mode: 'insensitive' } }] }
-      : {};
+      ? { ...baseFilter, OR: [{ name: { contains: search, mode: 'insensitive' } }, { email: { contains: search, mode: 'insensitive' } }] }
+      : baseFilter;
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         where,
