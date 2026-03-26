@@ -95,6 +95,21 @@ export class AdminService {
     });
   }
 
+  // --- Property Types ---
+  async getPropertyTypes() {
+    return this.prisma.propertyType.findMany({ orderBy: { name: 'asc' } });
+  }
+
+  async createPropertyType(name: string) {
+    return this.prisma.propertyType.create({ data: { name } });
+  }
+
+  async deletePropertyType(id: string) {
+    const existing = await this.prisma.propertyType.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Property type not found');
+    return this.prisma.propertyType.delete({ where: { id } });
+  }
+
   // Anonymized summary for mobile — investor sees their own name, others are masked
   async getPropertyPayoutSummary(propertyId: string, requestingUserId?: string) {
     const payouts = await this.prisma.payout.findMany({

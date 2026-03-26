@@ -24,8 +24,11 @@ export const load: PageServerLoad = async ({ cookies, params }) => {
   if (!token) throw redirect(302, '/login');
 
   try {
-    const property = await apiFetch(`/admin/properties/${params.id}`, { token });
-    return { property };
+    const [property, propertyTypes] = await Promise.all([
+      apiFetch(`/admin/properties/${params.id}`, { token }),
+      apiFetch('/admin/property-types', { token }).catch(() => []),
+    ]);
+    return { property, propertyTypes };
   } catch (err: any) {
     if (err.status === 401) throw redirect(302, '/login');
     throw err;
@@ -61,13 +64,17 @@ export const actions: Actions = {
     }
 
     try {
+      const area = raw.area ? Number(raw.area) : undefined;
+      const handoverDate = raw.handoverDate?.toString() || undefined;
+      const propertyTypeId = raw.propertyTypeId?.toString() || undefined;
+
       const res = await fetch(`${apiUrl}/api/v1/admin/properties/${params.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ ...result.data, images, paymentPlan }),
+        body: JSON.stringify({ ...result.data, images, paymentPlan, area, handoverDate, propertyTypeId }),
       });
 
       const json = await res.json();

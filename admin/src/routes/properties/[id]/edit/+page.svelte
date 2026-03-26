@@ -112,6 +112,35 @@
     longitude = prop.longitude ?? '';
   }
 
+  // New fields
+  let propertyTypeId = '';
+  let area: number | '' = '';
+  let handoverFrom = '';
+  let handoverTo = '';
+  let newFieldsReady = false;
+
+  // Generate quarter options Q1 2025 – Q4 2035
+  const quarterOptions: string[] = [];
+  for (let y = 2025; y <= 2035; y++) {
+    for (let q = 1; q <= 4; q++) {
+      quarterOptions.push(`Q${q} ${y}`);
+    }
+  }
+
+  $: if (prop && !newFieldsReady) {
+    newFieldsReady = true;
+    propertyTypeId = prop.propertyTypeId ?? prop.propertyType?.id ?? '';
+    area = prop.area ?? '';
+    // Parse handoverDate "Q1 2029 - Q3 2029" into from/to
+    if (prop.handoverDate) {
+      const parts = prop.handoverDate.split(' - ');
+      handoverFrom = parts[0]?.trim() ?? '';
+      handoverTo = parts[1]?.trim() ?? '';
+    }
+  }
+
+  $: handoverDate = handoverFrom && handoverTo ? `${handoverFrom} - ${handoverTo}` : handoverFrom || '';
+
   function onEmirateChange(e: Event) {
     const sel = (e.target as HTMLSelectElement).value;
     const em = EMIRATES.find((e) => e.name === sel);
@@ -159,6 +188,41 @@
         <div>
           <label class="label">Title *</label>
           <input name="title" class="input" required value={form?.values?.title ?? prop.title} />
+        </div>
+
+        <div>
+          <label class="label">Property Type</label>
+          <select name="propertyTypeId" class="input" bind:value={propertyTypeId}>
+            <option value="">Select type...</option>
+            {#each data.propertyTypes as pt}
+              <option value={pt.id}>{pt.name}</option>
+            {/each}
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="label">Area (sq.ft)</label>
+            <input name="area" type="number" class="input" min="0" placeholder="e.g. 1200" bind:value={area} />
+          </div>
+          <div>
+            <label class="label">Handover Date</label>
+            <div class="grid grid-cols-2 gap-2">
+              <select class="input text-sm" bind:value={handoverFrom}>
+                <option value="">From...</option>
+                {#each quarterOptions as q}
+                  <option value={q}>{q}</option>
+                {/each}
+              </select>
+              <select class="input text-sm" bind:value={handoverTo}>
+                <option value="">To...</option>
+                {#each quarterOptions as q}
+                  <option value={q}>{q}</option>
+                {/each}
+              </select>
+            </div>
+            <input type="hidden" name="handoverDate" value={handoverDate} />
+          </div>
         </div>
 
         <div>

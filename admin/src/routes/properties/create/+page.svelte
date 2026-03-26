@@ -2,8 +2,9 @@
   import { enhance } from '$app/forms';
   import { toast } from '$lib/stores/toast';
   import RichEditor from '$lib/components/RichEditor.svelte';
-  import type { ActionData } from './$types';
+  import type { PageData, ActionData } from './$types';
 
+  export let data: PageData;
   export let form: ActionData;
   let loading = false;
 
@@ -92,6 +93,22 @@
   let latitude: number | '' = '';
   let longitude: number | '' = '';
 
+  // New fields
+  let propertyTypeId = '';
+  let area: number | '' = '';
+  let handoverFrom = '';
+  let handoverTo = '';
+
+  // Generate quarter options Q1 2025 – Q4 2035
+  const quarterOptions: string[] = [];
+  for (let y = 2025; y <= 2035; y++) {
+    for (let q = 1; q <= 4; q++) {
+      quarterOptions.push(`Q${q} ${y}`);
+    }
+  }
+
+  $: handoverDate = handoverFrom && handoverTo ? `${handoverFrom} - ${handoverTo}` : handoverFrom || '';
+
   function onEmirateChange(e: Event) {
     const sel = (e.target as HTMLSelectElement).value;
     const em = EMIRATES.find((e) => e.name === sel);
@@ -136,6 +153,41 @@
         <label class="label" for="title">Title *</label>
         <input id="title" name="title" class="input" required value={form?.values?.title ?? ''} placeholder="Skyline Residences — Downtown Dubai" />
         {#if form?.errors?.title}<p class="text-red-500 text-xs mt-1">{form.errors.title[0]}</p>{/if}
+      </div>
+
+      <div>
+        <label class="label" for="propertyTypeId">Property Type</label>
+        <select id="propertyTypeId" name="propertyTypeId" class="input" bind:value={propertyTypeId}>
+          <option value="">Select type...</option>
+          {#each data.propertyTypes as pt}
+            <option value={pt.id}>{pt.name}</option>
+          {/each}
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="label" for="area">Area (sq.ft)</label>
+          <input id="area" name="area" type="number" class="input" min="0" placeholder="e.g. 1200" bind:value={area} />
+        </div>
+        <div>
+          <label class="label">Handover Date</label>
+          <div class="grid grid-cols-2 gap-2">
+            <select class="input text-sm" bind:value={handoverFrom}>
+              <option value="">From...</option>
+              {#each quarterOptions as q}
+                <option value={q}>{q}</option>
+              {/each}
+            </select>
+            <select class="input text-sm" bind:value={handoverTo}>
+              <option value="">To...</option>
+              {#each quarterOptions as q}
+                <option value={q}>{q}</option>
+              {/each}
+            </select>
+          </div>
+          <input type="hidden" name="handoverDate" value={handoverDate} />
+        </div>
       </div>
 
       <div>

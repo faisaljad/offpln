@@ -49,33 +49,45 @@ model RefreshToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model Property {
-  id            String   @id @default(uuid())
-  title         String
-  description   String
-  location      String
-  latitude      Float?
-  longitude     Float?
-  developer     String?
-  totalPrice    Float
-  totalShares   Int
-  pricePerShare Float
-  availableShares Int
-  roi           Float
-  profitType    String?
-  developerLogo String?
-  images        String[]
-  paymentPlan   Json
-  status        PropertyStatus @default(ACTIVE)
-  soldPrice     Float?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model PropertyType {
+  id         String     @id @default(uuid())
+  name       String     @unique
+  createdAt  DateTime   @default(now())
+  properties Property[]
+}
 
-  investments Investment[]
-  payouts     Payout[]
+model Property {
+  id              String   @id @default(uuid())
+  title           String
+  description     String
+  location        String
+  latitude        Float?
+  longitude       Float?
+  developer       String?
+  totalPrice      Float
+  totalShares     Int
+  pricePerShare   Float
+  availableShares Int
+  roi             Float
+  profitType      String?
+  developerLogo   String?
+  images          String[]
+  paymentPlan     Json
+  status          PropertyStatus @default(ACTIVE)
+  soldPrice       Float?
+  area            Float?
+  handoverDate    String?
+  propertyTypeId  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  propertyType PropertyType? @relation(fields: [propertyTypeId], references: [id])
+  investments  Investment[]
+  payouts      Payout[]
 
   @@index([status])
   @@index([location])
+  @@index([propertyTypeId])
 }
 
 model Investment {

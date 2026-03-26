@@ -65,6 +65,10 @@ export class PropertiesService {
           images: true,
           status: true,
           createdAt: true,
+          area: true,
+          handoverDate: true,
+          propertyTypeId: true,
+          propertyType: true,
         },
       }),
       this.prisma.property.count({ where }),
@@ -74,7 +78,10 @@ export class PropertiesService {
   }
 
   async findOne(id: string) {
-    const property = await this.prisma.property.findUnique({ where: { id } });
+    const property = await this.prisma.property.findUnique({
+      where: { id },
+      include: { propertyType: true },
+    });
     if (!property) throw new NotFoundException('Property not found');
     return property;
   }

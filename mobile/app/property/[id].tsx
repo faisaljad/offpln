@@ -178,6 +178,8 @@ export default function PropertyDetailScreen() {
     { label: 'Price/Share', value: formatCurrency(property.pricePerShare), icon: 'pricetag-outline' as const },
     { label: 'Stake Available', value: `${property.availableShares * 10}%`, icon: 'pie-chart-outline' as const },
     { label: 'Developer', value: property.developer || 'N/A', icon: 'business-outline' as const },
+    ...(property.area ? [{ label: 'Area', value: `${Number(property.area).toLocaleString()} sq.ft`, icon: 'resize-outline' as const }] : []),
+    ...(property.propertyType ? [{ label: 'Type', value: property.propertyType.name, icon: 'home-outline' as const }] : []),
   ];
 
   return (
@@ -339,6 +341,19 @@ export default function PropertyDetailScreen() {
               ))}
             </View>
           </View>
+
+          {/* Handover Date */}
+          {property.handoverDate ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Handover</Text>
+              <View style={styles.developerCard}>
+                <View style={[styles.developerIcon, { backgroundColor: '#fef3c7' }]}>
+                  <Ionicons name="calendar-outline" size={20} color="#d97706" />
+                </View>
+                <Text style={styles.developerName}>{property.handoverDate}</Text>
+              </View>
+            </View>
+          ) : null}
 
           {/* Developer Info */}
           {property.developer ? (

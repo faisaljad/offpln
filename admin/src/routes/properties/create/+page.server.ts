@@ -1,6 +1,7 @@
 import { redirect, fail } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import type { Actions, PageServerLoad } from './$types';
+import { apiFetch } from '$lib/utils/api';
 import { z } from 'zod';
 
 const PropertySchema = z.object({
@@ -21,7 +22,15 @@ const PropertySchema = z.object({
 export const load: PageServerLoad = async ({ cookies }) => {
   const token = cookies.get('admin_token');
   if (!token) throw redirect(302, '/login');
-  return {};
+
+  let propertyTypes: any[] = [];
+  try {
+    propertyTypes = await apiFetch('/admin/property-types', { token });
+  } catch {
+    // ignore — dropdown will just be empty
+  }
+
+  return { propertyTypes };
 };
 
 export const actions: Actions = {
@@ -54,13 +63,17 @@ export const actions: Actions = {
     }
 
     try {
+      const area = raw.area ? Number(raw.area) : undefined;
+      const handoverDate = raw.handoverDate?.toString() || undefined;
+      const propertyTypeId = raw.propertyTypeId?.toString() || undefined;
+
       const res = await fetch(`${apiUrl}/api/v1/admin/properties`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ ...result.data, images, paymentPlan }),
+        body: JSON.stringify({ ...result.data, images, paymentPlan, area, handoverDate, propertyTypeId }),
       });
 
       const json = await res.json();

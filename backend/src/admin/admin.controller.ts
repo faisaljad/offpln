@@ -146,6 +146,22 @@ export class AdminController {
     return this.propertiesService.bulkCreate(body.properties);
   }
 
+  // --- Property Types ---
+  @Get('property-types')
+  getPropertyTypes() {
+    return this.adminService.getPropertyTypes();
+  }
+
+  @Post('property-types')
+  createPropertyType(@Body('name') name: string) {
+    return this.adminService.createPropertyType(name);
+  }
+
+  @Delete('property-types/:id')
+  deletePropertyType(@Param('id') id: string) {
+    return this.adminService.deletePropertyType(id);
+  }
+
   // --- Investments ---
   @Get('investments')
   getAllInvestments(@Query() query: any) {

@@ -6,6 +6,7 @@
   const nav = [
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
     { href: '/properties', label: 'Properties', icon: '🏗️' },
+    { href: '/property-types', label: 'Property Types', icon: '🏷️' },
     { href: '/investments', label: 'Investments', icon: '💼' },
     { href: '/investors', label: 'Investors', icon: '👥' },
     { href: '/transfers', label: 'Transfers', icon: '🔄' },

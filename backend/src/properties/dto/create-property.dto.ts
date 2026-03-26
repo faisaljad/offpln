@@ -67,4 +67,17 @@ export class CreatePropertyDto {
   @IsOptional()
   @IsEnum(PropertyStatus)
   status?: PropertyStatus;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  area?: number;
+
+  @IsOptional()
+  @IsString()
+  handoverDate?: string;
+
+  @IsOptional()
+  @IsString()
+  propertyTypeId?: string;
 }
