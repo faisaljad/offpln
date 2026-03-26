@@ -2,234 +2,325 @@ import { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, Easing, Dimensions } from 'react-native';
 import { Redirect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Svg, Path, Rect, Line, Circle, G, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
+import Svg, { Path, Rect, Line, Circle, G, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedLine = Animated.createAnimatedComponent(Line);
+const AnimatedRect = Animated.createAnimatedComponent(Rect);
 import { useAuthStore } from '../store/auth';
 
 const { width } = Dimensions.get('window');
 
 function VillaConstruction() {
-  // Step animations: foundation → walls → roof → windows/door → garden
-  const foundation = useRef(new Animated.Value(0)).current;
-  const walls = useRef(new Animated.Value(0)).current;
-  const roof = useRef(new Animated.Value(0)).current;
-  const details = useRef(new Animated.Value(0)).current;
-  const garden = useRef(new Animated.Value(0)).current;
-  const sparkle = useRef(new Animated.Value(0)).current;
-  const crane = useRef(new Animated.Value(0)).current;
+  // Each phase draws its strokes via dashOffset animation (no useNativeDriver — dashOffset is layout)
+  const ground = useRef(new Animated.Value(600)).current;
+  const foundation = useRef(new Animated.Value(700)).current;
+  const wallsLeft = useRef(new Animated.Value(400)).current;
+  const wallsMain = useRef(new Animated.Value(600)).current;
+  const wallsRight = useRef(new Animated.Value(400)).current;
+  const roofLine = useRef(new Animated.Value(500)).current;
+  const roofSide = useRef(new Animated.Value(200)).current;
+  const chimney = useRef(new Animated.Value(200)).current;
+  const windows = useRef(new Animated.Value(0)).current;
+  const door = useRef(new Animated.Value(200)).current;
+  const treeL = useRef(new Animated.Value(200)).current;
+  const treeR = useRef(new Animated.Value(200)).current;
+  const fence = useRef(new Animated.Value(0)).current;
+  const glow = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Sequential build process
+    const ease = Easing.out(Easing.ease);
     Animated.sequence([
-      Animated.timing(foundation, { toValue: 1, duration: 500, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-      Animated.timing(walls, { toValue: 1, duration: 600, easing: Easing.out(Easing.back(1.1)), useNativeDriver: true }),
-      Animated.timing(roof, { toValue: 1, duration: 500, easing: Easing.out(Easing.back(1.3)), useNativeDriver: true }),
-      Animated.timing(details, { toValue: 1, duration: 400, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-      Animated.timing(garden, { toValue: 1, duration: 500, easing: Easing.out(Easing.ease), useNativeDriver: true }),
-    ]).start();
-
-    // Crane swings while building
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(crane, { toValue: 1, duration: 1800, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-        Animated.timing(crane, { toValue: 0, duration: 1800, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
-      ])
-    ).start();
-
-    // Sparkle after build
-    setTimeout(() => {
+      // Ground
+      Animated.timing(ground, { toValue: 0, duration: 400, easing: ease, useNativeDriver: false }),
+      // Foundation
+      Animated.timing(foundation, { toValue: 0, duration: 400, easing: ease, useNativeDriver: false }),
+      // Walls simultaneously
+      Animated.parallel([
+        Animated.timing(wallsLeft, { toValue: 0, duration: 500, easing: ease, useNativeDriver: false }),
+        Animated.timing(wallsMain, { toValue: 0, duration: 600, easing: ease, useNativeDriver: false }),
+        Animated.timing(wallsRight, { toValue: 0, duration: 500, easing: ease, useNativeDriver: false }),
+      ]),
+      // Roof
+      Animated.parallel([
+        Animated.timing(roofLine, { toValue: 0, duration: 400, easing: ease, useNativeDriver: false }),
+        Animated.timing(roofSide, { toValue: 0, duration: 300, easing: ease, useNativeDriver: false }),
+        Animated.timing(chimney, { toValue: 0, duration: 250, easing: ease, useNativeDriver: false }),
+      ]),
+      // Windows + door
+      Animated.parallel([
+        Animated.timing(windows, { toValue: 1, duration: 400, easing: ease, useNativeDriver: false }),
+        Animated.timing(door, { toValue: 0, duration: 400, easing: ease, useNativeDriver: false }),
+      ]),
+      // Landscaping
+      Animated.parallel([
+        Animated.timing(treeL, { toValue: 0, duration: 400, easing: ease, useNativeDriver: false }),
+        Animated.timing(treeR, { toValue: 0, duration: 400, easing: ease, useNativeDriver: false }),
+        Animated.timing(fence, { toValue: 1, duration: 400, easing: ease, useNativeDriver: false }),
+      ]),
+    ]).start(() => {
+      // Glow pulse after complete
       Animated.loop(
         Animated.sequence([
-          Animated.timing(sparkle, { toValue: 1, duration: 1200, useNativeDriver: true }),
-          Animated.timing(sparkle, { toValue: 0, duration: 1200, useNativeDriver: true }),
+          Animated.timing(glow, { toValue: 1, duration: 1200, useNativeDriver: false }),
+          Animated.timing(glow, { toValue: 0, duration: 1200, useNativeDriver: false }),
         ])
       ).start();
-    }, 2200);
+    });
   }, []);
 
-  const craneRotate = crane.interpolate({ inputRange: [0, 1], outputRange: ['-6deg', '6deg'] });
+  const STROKE = 'rgba(125,211,252,0.7)';
+  const GOLD = 'rgba(251,191,36,0.8)';
+  const GREEN = 'rgba(74,222,128,0.6)';
+  const SUBTLE = 'rgba(148,163,184,0.5)';
   const W = width * 0.88;
 
   return (
-    <View style={{ width: W, height: 300, alignItems: 'center', justifyContent: 'flex-end', marginBottom: 32 }}>
+    <View style={{ width: W, height: 280, alignItems: 'center', marginBottom: 36 }}>
+      <Svg width={W} height={280} viewBox="0 0 320 220">
+        {/* ── Ground line ── */}
+        <AnimatedPath
+          d="M10 200 L310 200"
+          stroke={SUBTLE}
+          strokeWidth="2"
+          strokeLinecap="round"
+          fill="none"
+          strokeDasharray="600"
+          strokeDashoffset={ground}
+        />
 
-      {/* Crane — top right, disappears after roof */}
-      <Animated.View style={{
-        position: 'absolute', top: 0, right: 20,
-        transform: [{ rotate: craneRotate }],
-        opacity: roof.interpolate({ inputRange: [0, 0.8, 1], outputRange: [1, 1, 0] }),
-      }}>
-        <Svg width={50} height={110} viewBox="0 0 50 110">
-          <Rect x="22" y="15" width="5" height="95" fill="rgba(251,191,36,0.6)" rx="2" />
-          <Rect x="2" y="13" width="46" height="4" fill="rgba(251,191,36,0.7)" rx="2" />
-          <Line x1="8" y1="17" x2="8" y2="55" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
-          <Path d="M5 55 Q8 62 11 55" stroke="rgba(251,191,36,0.5)" strokeWidth="1.5" fill="none" />
-          <Circle cx="25" cy="13" r="3.5" fill="rgba(251,191,36,0.8)" />
-        </Svg>
-      </Animated.View>
+        {/* ── Foundation ── */}
+        <AnimatedPath
+          d="M50 200 L50 190 L270 190 L270 200"
+          stroke={SUBTLE}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          strokeDasharray="700"
+          strokeDashoffset={foundation}
+        />
+        {/* Foundation hatching */}
+        <AnimatedPath
+          d="M60 195 L80 195 M100 195 L120 195 M140 195 L160 195 M180 195 L200 195 M220 195 L240 195 M250 195 L260 195"
+          stroke="rgba(148,163,184,0.25)"
+          strokeWidth="1"
+          fill="none"
+          strokeDasharray="700"
+          strokeDashoffset={foundation}
+        />
 
-      {/* Ground */}
-      <Svg width={W} height={300} viewBox="0 0 360 300" style={{ position: 'absolute' }}>
-        <Defs>
-          <SvgGradient id="groundG" x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor="rgba(255,255,255,0.08)" />
-            <Stop offset="1" stopColor="rgba(255,255,255,0)" />
-          </SvgGradient>
-        </Defs>
-        <Rect x="30" y="260" width="300" height="30" rx="8" fill="url(#groundG)" />
-        <Line x1="30" y1="260" x2="330" y2="260" stroke="rgba(255,255,255,0.12)" strokeWidth="2" strokeLinecap="round" />
+        {/* ── Walls — left wing ── */}
+        <AnimatedPath
+          d="M50 190 L50 140 L85 140 L85 190"
+          stroke={STROKE}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          strokeDasharray="400"
+          strokeDashoffset={wallsLeft}
+        />
+
+        {/* ── Walls — main body ── */}
+        <AnimatedPath
+          d="M85 190 L85 110 L235 110 L235 190"
+          stroke={STROKE}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          strokeDasharray="600"
+          strokeDashoffset={wallsMain}
+        />
+
+        {/* ── Walls — right wing ── */}
+        <AnimatedPath
+          d="M235 190 L235 140 L270 140 L270 190"
+          stroke={STROKE}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          strokeDasharray="400"
+          strokeDashoffset={wallsRight}
+        />
+
+        {/* ── Garage outline ── */}
+        <AnimatedPath
+          d="M200 190 L200 150 L232 150 L232 190"
+          stroke="rgba(125,211,252,0.4)"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          strokeDasharray="400"
+          strokeDashoffset={wallsRight}
+        />
+
+        {/* ── Roof — main ── */}
+        <AnimatedPath
+          d="M75 110 L160 60 L245 110"
+          stroke={GOLD}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          strokeDasharray="500"
+          strokeDashoffset={roofLine}
+        />
+
+        {/* ── Roof — left wing ── */}
+        <AnimatedPath
+          d="M42 140 L67 122 L92 140"
+          stroke={GOLD}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          strokeDasharray="200"
+          strokeDashoffset={roofSide}
+        />
+
+        {/* ── Roof — right wing ── */}
+        <AnimatedPath
+          d="M228 140 L253 122 L278 140"
+          stroke={GOLD}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          strokeDasharray="200"
+          strokeDashoffset={roofSide}
+        />
+
+        {/* ── Chimney ── */}
+        <AnimatedPath
+          d="M200 85 L200 62 L212 62 L212 78"
+          stroke={SUBTLE}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          strokeDasharray="200"
+          strokeDashoffset={chimney}
+        />
+
+        {/* ── Windows row 1 ── */}
+        <Animated.View style={{ opacity: windows, position: 'absolute' }}>
+          <Svg width={W} height={280} viewBox="0 0 320 220">
+            {[105, 130, 175, 200].map(x => (
+              <G key={x}>
+                <Rect x={x} y="120" width="18" height="16" rx="2" stroke={STROKE} strokeWidth="1.2" fill="none" />
+                <Line x1={x + 9} y1={120} x2={x + 9} y2={136} stroke={STROKE} strokeWidth="0.7" />
+                <Line x1={x} y1={128} x2={x + 18} y2={128} stroke={STROKE} strokeWidth="0.7" />
+              </G>
+            ))}
+            {/* Windows row 2 */}
+            {[105, 175].map(x => (
+              <G key={`w2${x}`}>
+                <Rect x={x} y="148" width="18" height="16" rx="2" stroke={STROKE} strokeWidth="1.2" fill="none" />
+                <Line x1={x + 9} y1={148} x2={x + 9} y2={164} stroke={STROKE} strokeWidth="0.7" />
+                <Line x1={x} y1={156} x2={x + 18} y2={156} stroke={STROKE} strokeWidth="0.7" />
+              </G>
+            ))}
+            {/* Left wing window */}
+            <Rect x="58" y="152" width="16" height="14" rx="2" stroke={STROKE} strokeWidth="1" fill="none" />
+            <Line x1="66" y1="152" x2="66" y2="166" stroke={STROKE} strokeWidth="0.6" />
+            {/* Right wing window */}
+            <Rect x="245" y="152" width="16" height="14" rx="2" stroke={STROKE} strokeWidth="1" fill="none" />
+            <Line x1="253" y1="152" x2="253" y2="166" stroke={STROKE} strokeWidth="0.6" />
+            {/* Garage door */}
+            <Line x1="205" y1="162" x2="227" y2="162" stroke="rgba(125,211,252,0.3)" strokeWidth="0.8" />
+            <Line x1="205" y1="170" x2="227" y2="170" stroke="rgba(125,211,252,0.3)" strokeWidth="0.8" />
+            <Line x1="205" y1="178" x2="227" y2="178" stroke="rgba(125,211,252,0.3)" strokeWidth="0.8" />
+            {/* Balcony railing */}
+            <Line x1="135" y1="145" x2="185" y2="145" stroke="rgba(125,211,252,0.4)" strokeWidth="1" />
+            {[138, 145, 152, 159, 166, 173, 180].map(x => (
+              <Line key={`b${x}`} x1={x} y1="145" x2={x} y2="148" stroke="rgba(125,211,252,0.3)" strokeWidth="0.7" />
+            ))}
+          </Svg>
+        </Animated.View>
+
+        {/* ── Door ── */}
+        <AnimatedPath
+          d="M150 190 L150 160 Q160 152 170 160 L170 190"
+          stroke={GOLD}
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          strokeDasharray="200"
+          strokeDashoffset={door}
+        />
+        {/* Door handle */}
+        <AnimatedCircle
+          cx="165" cy="178" r="1.5"
+          stroke={GOLD}
+          strokeWidth="1"
+          fill="none"
+          opacity={windows}
+        />
+
+        {/* ── Tree left ── */}
+        <AnimatedPath
+          d="M30 200 L30 165 M30 175 Q20 155 30 145 Q40 155 30 175 M22 180 Q30 160 38 180"
+          stroke={GREEN}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          strokeDasharray="200"
+          strokeDashoffset={treeL}
+        />
+
+        {/* ── Tree right ── */}
+        <AnimatedPath
+          d="M290 200 L290 165 M290 175 Q280 155 290 145 Q300 155 290 175 M282 180 Q290 160 298 180"
+          stroke={GREEN}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          strokeDasharray="200"
+          strokeDashoffset={treeR}
+        />
+
+        {/* ── Fence & path ── */}
+        <Animated.View style={{ opacity: fence, position: 'absolute' }}>
+          <Svg width={W} height={280} viewBox="0 0 320 220">
+            {/* Fence left */}
+            {[15, 22, 29, 36, 43].map(x => (
+              <Line key={`fl${x}`} x1={x} y1="200" x2={x} y2="190" stroke="rgba(148,163,184,0.3)" strokeWidth="0.8" />
+            ))}
+            <Line x1="15" y1="193" x2="43" y2="193" stroke="rgba(148,163,184,0.3)" strokeWidth="0.8" />
+            {/* Fence right */}
+            {[277, 284, 291, 298, 305].map(x => (
+              <Line key={`fr${x}`} x1={x} y1="200" x2={x} y2="190" stroke="rgba(148,163,184,0.3)" strokeWidth="0.8" />
+            ))}
+            <Line x1="277" y1="193" x2="305" y2="193" stroke="rgba(148,163,184,0.3)" strokeWidth="0.8" />
+            {/* Path/walkway */}
+            <Line x1="155" y1="200" x2="150" y2="210" stroke="rgba(148,163,184,0.2)" strokeWidth="1" />
+            <Line x1="165" y1="200" x2="170" y2="210" stroke="rgba(148,163,184,0.2)" strokeWidth="1" />
+            {/* Bushes as circles outline */}
+            <Circle cx="48" cy="195" r="6" stroke={GREEN} strokeWidth="1" fill="none" />
+            <Circle cx="272" cy="195" r="6" stroke={GREEN} strokeWidth="1" fill="none" />
+            <Circle cx="58" cy="197" r="4" stroke={GREEN} strokeWidth="0.8" fill="none" />
+            <Circle cx="262" cy="197" r="4" stroke={GREEN} strokeWidth="0.8" fill="none" />
+          </Svg>
+        </Animated.View>
+
+        {/* ── Glow pulse on completed villa ── */}
+        <AnimatedPath
+          d="M50 200 L50 190 L85 190 L85 140 L50 140 L85 110 L235 110 L270 140 L235 140 L235 190 L270 190 L270 200"
+          stroke="rgba(251,191,36,0.15)"
+          strokeWidth={glow.interpolate({ inputRange: [0, 1], outputRange: [0, 3] })}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
       </Svg>
-
-      {/* Foundation — concrete base */}
-      <Animated.View style={{
-        position: 'absolute', bottom: 40,
-        opacity: foundation,
-        transform: [{ scaleX: foundation }, { scaleY: foundation.interpolate({ inputRange: [0, 1], outputRange: [0, 1] }) }],
-      }}>
-        <Svg width={240} height={20} viewBox="0 0 240 20">
-          <Rect x="0" y="0" width="240" height="20" rx="4" fill="rgba(148,163,184,0.4)" />
-          <Rect x="0" y="0" width="240" height="8" rx="4" fill="rgba(148,163,184,0.2)" />
-          {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
-            <Line key={i} x1={30 * i + 15} y1="2" x2={30 * i + 15} y2="18" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-          ))}
-        </Svg>
-      </Animated.View>
-
-      {/* Walls — main villa body */}
-      <Animated.View style={{
-        position: 'absolute', bottom: 58,
-        opacity: walls,
-        transform: [{ translateY: walls.interpolate({ inputRange: [0, 1], outputRange: [80, 0] }) }],
-      }}>
-        <Svg width={220} height={100} viewBox="0 0 220 100">
-          {/* Main body */}
-          <Rect x="20" y="10" width="180" height="90" rx="4" fill="rgba(14,165,233,0.3)" />
-          {/* Left wing */}
-          <Rect x="0" y="30" width="30" height="70" rx="4" fill="rgba(14,165,233,0.25)" />
-          {/* Right wing */}
-          <Rect x="190" y="30" width="30" height="70" rx="4" fill="rgba(14,165,233,0.25)" />
-          {/* Garage */}
-          <Rect x="155" y="55" width="35" height="45" rx="3" fill="rgba(14,165,233,0.15)" />
-          {/* Pillar lines */}
-          <Line x1="20" y1="10" x2="20" y2="100" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" />
-          <Line x1="200" y1="10" x2="200" y2="100" stroke="rgba(255,255,255,0.1)" strokeWidth="1.5" />
-        </Svg>
-      </Animated.View>
-
-      {/* Roof */}
-      <Animated.View style={{
-        position: 'absolute', bottom: 148,
-        opacity: roof,
-        transform: [{ translateY: roof.interpolate({ inputRange: [0, 1], outputRange: [-30, 0] }) }],
-      }}>
-        <Svg width={240} height={50} viewBox="0 0 240 50">
-          {/* Main roof */}
-          <Path d="M10 50 L120 5 L230 50 Z" fill="rgba(251,191,36,0.5)" />
-          <Path d="M10 50 L120 5 L230 50" fill="none" stroke="rgba(251,191,36,0.7)" strokeWidth="2" />
-          {/* Left wing roof */}
-          <Path d="M0 50 L15 35 L35 50" fill="rgba(251,191,36,0.35)" />
-          {/* Right wing roof */}
-          <Path d="M205 50 L225 35 L240 50" fill="rgba(251,191,36,0.35)" />
-          {/* Chimney */}
-          <Rect x="160" y="15" width="12" height="25" rx="2" fill="rgba(148,163,184,0.4)" />
-        </Svg>
-      </Animated.View>
-
-      {/* Windows, door, details */}
-      <Animated.View style={{
-        position: 'absolute', bottom: 58,
-        opacity: details,
-        transform: [{ scale: details }],
-      }}>
-        <Svg width={220} height={100} viewBox="0 0 220 100">
-          {/* Windows — row 1 */}
-          <Rect x="40" y="18" width="22" height="18" rx="3" fill="rgba(125,211,252,0.4)" />
-          <Rect x="72" y="18" width="22" height="18" rx="3" fill="rgba(125,211,252,0.4)" />
-          <Rect x="126" y="18" width="22" height="18" rx="3" fill="rgba(125,211,252,0.4)" />
-          <Rect x="158" y="18" width="22" height="18" rx="3" fill="rgba(125,211,252,0.4)" />
-          {/* Window crosses */}
-          {[40, 72, 126, 158].map(x => (
-            <G key={x}>
-              <Line x1={x + 11} y1={18} x2={x + 11} y2={36} stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
-              <Line x1={x} y1={27} x2={x + 22} y2={27} stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
-            </G>
-          ))}
-          {/* Windows — row 2 */}
-          <Rect x="40" y="48" width="22" height="18" rx="3" fill="rgba(125,211,252,0.35)" />
-          <Rect x="126" y="48" width="22" height="18" rx="3" fill="rgba(125,211,252,0.35)" />
-          {/* Front door */}
-          <Rect x="90" y="50" width="24" height="50" rx="12" fill="rgba(251,191,36,0.5)" />
-          <Circle cx="108" cy="78" r="2" fill="rgba(255,255,255,0.4)" />
-          {/* Garage door lines */}
-          {[0, 1, 2, 3].map(i => (
-            <Line key={i} x1={158} y1={60 + i * 10} x2={188} y2={60 + i * 10} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
-          ))}
-          {/* Balcony */}
-          <Rect x="82" y="42" width="40" height="3" rx="1.5" fill="rgba(255,255,255,0.15)" />
-          <Line x1="85" y1="42" x2="85" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <Line x1="90" y1="42" x2="90" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <Line x1="95" y1="42" x2="95" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <Line x1="100" y1="42" x2="100" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <Line x1="105" y1="42" x2="105" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <Line x1="110" y1="42" x2="110" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <Line x1="115" y1="42" x2="115" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-          <Line x1="119" y1="42" x2="119" y2="48" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
-        </Svg>
-      </Animated.View>
-
-      {/* Garden & landscaping */}
-      <Animated.View style={{
-        position: 'absolute', bottom: 30,
-        opacity: garden,
-        transform: [{ scaleX: garden }],
-      }}>
-        <Svg width={300} height={40} viewBox="0 0 300 40">
-          {/* Driveway */}
-          <Path d="M130 0 L145 35 L175 35 L160 0 Z" fill="rgba(148,163,184,0.15)" />
-          {/* Bushes left */}
-          <Circle cx="30" cy="20" r="12" fill="rgba(34,197,94,0.25)" />
-          <Circle cx="52" cy="22" r="10" fill="rgba(34,197,94,0.2)" />
-          <Circle cx="15" cy="25" r="8" fill="rgba(34,197,94,0.15)" />
-          {/* Bushes right */}
-          <Circle cx="250" cy="20" r="12" fill="rgba(34,197,94,0.25)" />
-          <Circle cx="272" cy="22" r="10" fill="rgba(34,197,94,0.2)" />
-          <Circle cx="285" cy="25" r="8" fill="rgba(34,197,94,0.15)" />
-          {/* Trees */}
-          <Rect x="68" y="10" width="3" height="25" rx="1" fill="rgba(34,197,94,0.3)" />
-          <Circle cx="70" cy="6" r="10" fill="rgba(34,197,94,0.3)" />
-          <Rect x="228" y="10" width="3" height="25" rx="1" fill="rgba(34,197,94,0.3)" />
-          <Circle cx="230" cy="6" r="10" fill="rgba(34,197,94,0.3)" />
-          {/* Fence */}
-          {[0, 1, 2].map(i => (
-            <G key={`fl${i}`}>
-              <Rect x={85 + i * 12} y={18} width="2" height="18" rx="1" fill="rgba(255,255,255,0.08)" />
-            </G>
-          ))}
-          {[0, 1, 2].map(i => (
-            <G key={`fr${i}`}>
-              <Rect x={198 + i * 12} y={18} width="2" height="18" rx="1" fill="rgba(255,255,255,0.08)" />
-            </G>
-          ))}
-          {/* Pool */}
-          <Rect x="250" y="0" width="40" height="18" rx="9" fill="rgba(14,165,233,0.2)" stroke="rgba(14,165,233,0.15)" strokeWidth="1" />
-        </Svg>
-      </Animated.View>
-
-      {/* Sparkle particles — appear after construction */}
-      <Animated.View style={{ position: 'absolute', top: 0, left: 0, opacity: sparkle }}>
-        <Svg width={W} height={300} viewBox="0 0 360 300">
-          {[
-            { cx: 50, cy: 50 }, { cx: 300, cy: 30 }, { cx: 180, cy: 20 },
-            { cx: 320, cy: 90 }, { cx: 30, cy: 110 }, { cx: 260, cy: 60 },
-            { cx: 140, cy: 70 }, { cx: 80, cy: 140 },
-          ].map((s, i) => (
-            <G key={i}>
-              <Circle cx={s.cx} cy={s.cy} r="2" fill="rgba(251,191,36,0.6)" />
-              <Line x1={s.cx - 5} y1={s.cy} x2={s.cx + 5} y2={s.cy} stroke="rgba(251,191,36,0.3)" strokeWidth="1" />
-              <Line x1={s.cx} y1={s.cy - 5} x2={s.cx} y2={s.cy + 5} stroke="rgba(251,191,36,0.3)" strokeWidth="1" />
-            </G>
-          ))}
-        </Svg>
-      </Animated.View>
     </View>
   );
 }
