@@ -38,6 +38,7 @@ export default function PropertiesScreen() {
   const [search, setSearch] = useState('');
   const [emirate, setEmirate] = useState('All Emirates');
   const [emiratesList, setEmiratesList] = useState<string[]>(['All Emirates']);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -68,6 +69,10 @@ export default function PropertiesScreen() {
       setRefreshing(false);
     }
   }
+
+  useEffect(() => {
+    api.getUnreadCount().then((res: any) => setUnreadCount(res?.count || 0)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     api.getEmirates().then((res: any) => {
@@ -207,8 +212,13 @@ export default function PropertiesScreen() {
             <Text style={styles.headerGreeting}>Discover</Text>
             <Text style={styles.headerBrand}>OffPlan</Text>
           </View>
-          <TouchableOpacity style={styles.headerAction}>
+          <TouchableOpacity style={styles.headerAction} onPress={() => router.push('/notifications')}>
             <Ionicons name="notifications-outline" size={22} color="#0c4a6e" />
+            {unreadCount > 0 && (
+              <View style={styles.notifBadge}>
+                <Text style={styles.notifBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -426,6 +436,26 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(2,132,199,0.06)',
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'relative' as const,
+  },
+  notifBadge: {
+    position: 'absolute' as const,
+    top: -2,
+    right: -2,
+    backgroundColor: '#ef4444',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  notifBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700' as const,
   },
 
   // Search
