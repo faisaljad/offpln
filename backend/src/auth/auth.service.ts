@@ -116,14 +116,7 @@ export class AuthService {
     const valid = await bcrypt.compare(dto.password, user.password);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
-    // Admin/Super Admin: skip OTP, return tokens directly
-    if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
-      const tokens = await this.generateTokens(user.id, user.email, user.role);
-      await this.saveRefreshToken(user.id, tokens.refreshToken);
-      return { user: this.sanitize(user), ...tokens };
-    }
-
-    // Regular users: send OTP for verification
+    // All users: send OTP for verification
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
 
