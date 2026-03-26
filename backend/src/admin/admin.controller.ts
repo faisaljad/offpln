@@ -226,10 +226,48 @@ export class AdminController {
     return this.paymentsService.adminReject(id);
   }
 
+  // --- Reports ---
+  @Get('reports')
+  getReports() {
+    return this.adminService.getReports();
+  }
+
+  // --- Payment Schedules ---
+  @Get('payment-schedules/stats')
+  getPaymentStats() {
+    return this.adminService.getPaymentStats();
+  }
+
+  @Get('payment-schedules')
+  getPaymentSchedules(@Query('status') status?: string) {
+    return this.adminService.getPaymentSchedules(status);
+  }
+
   // --- Users ---
   @Get('users')
   getUsers(@Query() query: any) {
     return this.usersService.findAll(query.page, query.limit, query.search);
+  }
+
+  // --- Admin User Management ---
+  @Get('users/admins')
+  getAdminUsers() {
+    return this.adminService.getAdminUsers();
+  }
+
+  @Post('users/admins')
+  createAdminUser(@Body() body: { name: string; email: string; password: string }) {
+    return this.adminService.createAdminUser(body.name, body.email, body.password);
+  }
+
+  @Patch('users/admins/:id/password')
+  changeAdminPassword(@Param('id') id: string, @Body('newPassword') newPassword: string) {
+    return this.adminService.changeAdminPassword(id, newPassword);
+  }
+
+  @Delete('users/admins/:id')
+  deleteAdminUser(@Param('id') id: string) {
+    return this.adminService.deleteAdminUser(id);
   }
 
   @Get('users/:id')

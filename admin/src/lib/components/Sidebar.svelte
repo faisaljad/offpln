@@ -9,7 +9,10 @@
     { href: '/investments', label: 'Investments', icon: '💼' },
     { href: '/investors', label: 'Investors', icon: '👥' },
     { href: '/transfers', label: 'Transfers', icon: '🔄' },
+    { href: '/reports', label: 'Reports', icon: '📊' },
+    { href: '/payment-schedules', label: 'Payment Schedules', icon: '📅' },
     { href: '/payments', label: 'Payment Reviews', icon: '💳' },
+    { href: '/admin-users', label: 'Admin Users', icon: '👤' },
     { href: '/settings', label: 'Settings', icon: '⚙️' },
   ];
 
