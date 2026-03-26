@@ -27,6 +27,9 @@
   $: userPermissions = (user?.permissions as string[]) ?? [];
 
   function hasAccess(perm: string): boolean {
+    console.log(perm);
+    console.log('is super admin: '+isSuperAdmin);
+
     if (isSuperAdmin) return true;
     return userPermissions.includes(perm);
   }
