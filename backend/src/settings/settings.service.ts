@@ -15,7 +15,12 @@ export class SettingsService {
     return settings;
   }
 
-  async update(data: { termsAndConditions?: string; paymentTransferDetails?: string; transferListingTerms?: string; transferBuyingTerms?: string }) {
+  async update(data: {
+    termsAndConditions?: string; paymentTransferDetails?: string;
+    transferListingTerms?: string; transferBuyingTerms?: string;
+    supportPhone?: string; supportEmail?: string; supportWhatsapp?: string;
+    supportAddress?: string; supportWorkingHours?: string; supportWebsite?: string;
+  }) {
     return this.prisma.appSettings.upsert({
       where: { id: 'singleton' },
       create: {

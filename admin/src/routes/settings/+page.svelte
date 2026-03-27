@@ -60,6 +60,81 @@
       <RichEditor name="transferBuyingTerms" value={data.settings?.transferBuyingTerms ?? ''} />
     </div>
 
+    <!-- Support & Contact -->
+    <div class="card space-y-4">
+      <h2 class="text-lg font-semibold text-gray-900">Support & Contact</h2>
+      <p class="text-sm text-gray-500">Contact information displayed to investors in the mobile app support page.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="supportPhone" class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+          <input
+            type="text"
+            id="supportPhone"
+            name="supportPhone"
+            value={data.settings?.supportPhone ?? ''}
+            class="input w-full"
+          />
+        </div>
+
+        <div>
+          <label for="supportEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <input
+            type="text"
+            id="supportEmail"
+            name="supportEmail"
+            value={data.settings?.supportEmail ?? ''}
+            class="input w-full"
+          />
+        </div>
+
+        <div>
+          <label for="supportWhatsapp" class="block text-sm font-medium text-gray-700 mb-1">WhatsApp Number</label>
+          <input
+            type="text"
+            id="supportWhatsapp"
+            name="supportWhatsapp"
+            value={data.settings?.supportWhatsapp ?? ''}
+            placeholder="+971..."
+            class="input w-full"
+          />
+        </div>
+
+        <div>
+          <label for="supportWorkingHours" class="block text-sm font-medium text-gray-700 mb-1">Working Hours</label>
+          <input
+            type="text"
+            id="supportWorkingHours"
+            name="supportWorkingHours"
+            value={data.settings?.supportWorkingHours ?? ''}
+            placeholder="Sun-Thu 9AM-6PM"
+            class="input w-full"
+          />
+        </div>
+
+        <div>
+          <label for="supportWebsite" class="block text-sm font-medium text-gray-700 mb-1">Website URL</label>
+          <input
+            type="text"
+            id="supportWebsite"
+            name="supportWebsite"
+            value={data.settings?.supportWebsite ?? ''}
+            class="input w-full"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label for="supportAddress" class="block text-sm font-medium text-gray-700 mb-1">Office Address</label>
+        <textarea
+          id="supportAddress"
+          name="supportAddress"
+          rows="3"
+          class="input w-full"
+        >{data.settings?.supportAddress ?? ''}</textarea>
+      </div>
+    </div>
+
     <div class="flex justify-end">
       <button type="submit" disabled={loading} class="btn-primary">
         {loading ? 'Saving...' : 'Save Settings'}

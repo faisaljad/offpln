@@ -197,6 +197,12 @@ model AppSettings {
   paymentTransferDetails String   @default("")
   transferListingTerms   String   @default("")
   transferBuyingTerms    String   @default("")
+  supportPhone           String   @default("")
+  supportEmail           String   @default("")
+  supportWhatsapp        String   @default("")
+  supportAddress         String   @default("")
+  supportWorkingHours    String   @default("")
+  supportWebsite         String   @default("")
   updatedAt              DateTime @updatedAt
 }
 
