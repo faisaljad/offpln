@@ -13,16 +13,16 @@ import { useAuthStore } from '../store/auth';
 const { width } = Dimensions.get('window');
 
 function VillaConstruction() {
-  const sketch1 = useRef(new Animated.Value(2000)).current;
-  const sketch2 = useRef(new Animated.Value(1500)).current;
-  const sketch3 = useRef(new Animated.Value(0)).current;
+  const p1 = useRef(new Animated.Value(3000)).current;
+  const p2 = useRef(new Animated.Value(2000)).current;
+  const p3 = useRef(new Animated.Value(0)).current;
   const glow = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     Animated.sequence([
-      Animated.timing(sketch1, { toValue: 0, duration: 1600, easing: Easing.out(Easing.quad), useNativeDriver: false }),
-      Animated.timing(sketch2, { toValue: 0, duration: 1200, easing: Easing.out(Easing.quad), useNativeDriver: false }),
-      Animated.timing(sketch3, { toValue: 1, duration: 500, easing: Easing.out(Easing.ease), useNativeDriver: false }),
+      Animated.timing(p1, { toValue: 0, duration: 1800, easing: Easing.out(Easing.quad), useNativeDriver: false }),
+      Animated.timing(p2, { toValue: 0, duration: 1200, easing: Easing.out(Easing.quad), useNativeDriver: false }),
+      Animated.timing(p3, { toValue: 1, duration: 600, easing: Easing.out(Easing.ease), useNativeDriver: false }),
     ]).start(() => {
       Animated.loop(Animated.sequence([
         Animated.timing(glow, { toValue: 1, duration: 2500, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
@@ -31,144 +31,190 @@ function VillaConstruction() {
     });
   }, []);
 
-  const W = width * 0.92;
-  // Sketch palette — pencil on paper feel
-  const PEN = 'rgba(226,232,240,0.6)';
-  const PEN2 = 'rgba(226,232,240,0.35)';
-  const GOLD = 'rgba(251,191,36,0.55)';
-  const FAINT = 'rgba(203,213,225,0.18)';
+  const W = width * 0.95;
+  const S = 'rgba(220,228,238,0.55)';   // main stroke
+  const H = 'rgba(220,228,238,0.7)';    // heavy stroke
+  const L = 'rgba(200,210,225,0.25)';    // light/guide
+  const G2 = 'rgba(200,210,225,0.12)';   // ghost/grid
+  const A = 'rgba(251,191,36,0.45)';     // accent
 
   return (
-    <View style={{ width: W, height: 250, alignItems: 'center', marginBottom: 36 }}>
-      <Svg width={W} height={250} viewBox="0 0 380 210">
+    <View style={{ width: W, height: 270, alignItems: 'center', marginBottom: 30 }}>
+      <Svg width={W} height={270} viewBox="0 0 420 240">
 
-        {/* ═══ SKETCH 1: Main form — hand-drawn feel with slight wobble via curves ═══ */}
+        {/* ══ P1: Construction guides + main structure ══ */}
 
-        {/* Ground — loose sketch line, slightly uneven */}
-        <AnimatedPath d="M15 182 Q90 181 180 182 Q270 183 365 181" stroke={PEN2} strokeWidth="0.7" fill="none" strokeLinecap="round" strokeDasharray="2000" strokeDashoffset={sketch1} />
-        {/* Ground second pass — sketchy overlap */}
-        <AnimatedPath d="M20 183 Q180 180 360 183" stroke={FAINT} strokeWidth="0.5" fill="none" strokeLinecap="round" strokeDasharray="2000" strokeDashoffset={sketch1} />
+        {/* Perspective ground grid */}
+        <AnimatedPath d="M0 195 L420 195" stroke={G2} strokeWidth="0.4" fill="none" strokeDasharray="3000" strokeDashoffset={p1} />
+        <AnimatedPath d="M60 195 L80 220 M140 195 L150 220 M210 195 L210 220 M280 195 L270 220 M350 195 L340 220" stroke={G2} strokeWidth="0.3" fill="none" strokeDasharray="3000" strokeDashoffset={p1} />
+        <AnimatedPath d="M40 205 L380 205 M50 212 L370 212" stroke={G2} strokeWidth="0.25" fill="none" strokeDasharray="3000" strokeDashoffset={p1} />
 
-        {/* Foundation — slightly wobbly horizontal */}
-        <AnimatedPath d="M62 182 L62 174 Q180 173 298 174 L298 182" stroke={PEN} strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="2000" strokeDashoffset={sketch1} />
+        {/* Vertical construction guides — extend above building */}
+        <AnimatedPath d="M75 10 L75 195 M175 10 L175 195 M245 10 L245 195 M345 10 L345 195" stroke={G2} strokeWidth="0.3" fill="none" strokeDasharray="3000" strokeDashoffset={p1} />
+        {/* Horizontal guides */}
+        <AnimatedPath d="M40 55 L390 55 M40 95 L390 95 M40 130 L390 130 M40 160 L390 160" stroke={G2} strokeWidth="0.25" fill="none" strokeDasharray="3000" strokeDashoffset={p1} />
 
-        {/* Main body walls — hand-drawn, corners slightly overshooting */}
-        <AnimatedPath d="M97 174 L96 96 Q97 94 98 96 L262 95 Q264 94 263 96 L263 174" stroke={PEN} strokeWidth="1.3" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="2000" strokeDashoffset={sketch1} />
-        {/* Redraw main walls — sketch overlap for depth */}
-        <AnimatedPath d="M98 173 L97 97 M262 97 L262 173" stroke={FAINT} strokeWidth="0.6" fill="none" strokeLinecap="round" strokeDasharray="2000" strokeDashoffset={sketch1} />
+        {/* Ground line — bold */}
+        <AnimatedPath d="M30 195 L390 195" stroke={H} strokeWidth="1.2" fill="none" strokeLinecap="round" strokeDasharray="3000" strokeDashoffset={p1} />
+
+        {/* Foundation / base — stone texture */}
+        <AnimatedPath d="M65 195 L65 185 L355 185 L355 195" stroke={H} strokeWidth="1.3" fill="none" strokeLinejoin="round" strokeDasharray="3000" strokeDashoffset={p1} />
+        <AnimatedPath d="M70 190 L85 190 M95 188 L115 188 M125 190 L145 190 M155 188 L175 188 M185 190 L205 190 M215 188 L235 188 M245 190 L265 190 M275 188 L295 188 M305 190 L325 190 M335 188 L350 188" stroke={L} strokeWidth="0.4" fill="none" strokeDasharray="3000" strokeDashoffset={p1} />
+
+        {/* ── Ground floor walls ── */}
+        {/* Main body */}
+        <AnimatedPath d="M85 185 L85 130 L335 130 L335 185" stroke={H} strokeWidth="1.5" fill="none" strokeLinejoin="round" strokeDasharray="3000" strokeDashoffset={p1} />
 
         {/* Left wing */}
-        <AnimatedPath d="M62 174 L61 127 Q62 126 63 127 L97 126" stroke={PEN} strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="2000" strokeDashoffset={sketch1} />
+        <AnimatedPath d="M65 185 L65 145 L85 145" stroke={S} strokeWidth="1.2" fill="none" strokeLinejoin="round" strokeDasharray="3000" strokeDashoffset={p1} />
 
         {/* Right wing */}
-        <AnimatedPath d="M263 126 L298 127 Q299 126 298 128 L298 174" stroke={PEN} strokeWidth="1" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="2000" strokeDashoffset={sketch1} />
+        <AnimatedPath d="M335 145 L355 145 L355 185" stroke={S} strokeWidth="1.2" fill="none" strokeLinejoin="round" strokeDasharray="3000" strokeDashoffset={p1} />
 
-        {/* Shadow hatching under foundation */}
-        <AnimatedPath d="M70 177 L80 180 M90 177 L100 180 M110 177 L120 180 M130 177 L140 180 M150 177 L160 180 M170 177 L180 180 M190 177 L200 180 M210 177 L220 180 M230 177 L240 180 M250 177 L260 180 M270 177 L280 180 M285 177 L290 180" stroke={FAINT} strokeWidth="0.4" fill="none" strokeLinecap="round" strokeDasharray="2000" strokeDashoffset={sketch1} />
+        {/* Porch / veranda overhang line */}
+        <AnimatedPath d="M110 130 L110 120 L310 120 L310 130" stroke={S} strokeWidth="0.8" fill="none" strokeLinejoin="round" strokeDasharray="3000" strokeDashoffset={p1} />
 
+        {/* ── Second floor ── */}
+        <AnimatedPath d="M95 130 L95 75 L325 75 L325 130" stroke={H} strokeWidth="1.4" fill="none" strokeLinejoin="round" strokeDasharray="3000" strokeDashoffset={p1} />
 
-        {/* ═══ SKETCH 2: Roof + entrance + details ═══ */}
-
-        {/* Main roof — confident pencil strokes */}
-        <AnimatedPath d="M88 96 Q130 72 180 56 Q230 72 272 96" stroke={GOLD} strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1500" strokeDashoffset={sketch2} />
-        {/* Roof second pass */}
-        <AnimatedPath d="M90 97 L180 57 L270 97" stroke="rgba(251,191,36,0.25)" strokeWidth="0.7" fill="none" strokeLinecap="round" strokeDasharray="1500" strokeDashoffset={sketch2} />
-
-        {/* Left wing roof */}
-        <AnimatedPath d="M54 127 Q68 113 80 108 Q92 113 105 127" stroke={GOLD} strokeWidth="1.1" fill="none" strokeLinecap="round" strokeDasharray="1500" strokeDashoffset={sketch2} />
-
-        {/* Right wing roof */}
-        <AnimatedPath d="M255 127 Q268 113 280 108 Q292 113 305 127" stroke={GOLD} strokeWidth="1.1" fill="none" strokeLinecap="round" strokeDasharray="1500" strokeDashoffset={sketch2} />
-
-        {/* Roof hatching — sketch shading */}
-        <AnimatedPath d="M120 82 L125 88 M140 74 L145 80 M160 66 L165 72 M195 66 L200 72 M215 74 L220 80 M235 82 L240 88" stroke="rgba(251,191,36,0.15)" strokeWidth="0.5" fill="none" strokeLinecap="round" strokeDasharray="1500" strokeDashoffset={sketch2} />
-
-        {/* Entrance columns */}
-        <AnimatedPath d="M160 174 L159 106 Q160 104 161 106" stroke={PEN} strokeWidth="0.9" fill="none" strokeLinecap="round" strokeDasharray="1500" strokeDashoffset={sketch2} />
-        <AnimatedPath d="M200 174 L200 106 Q201 104 201 106" stroke={PEN} strokeWidth="0.9" fill="none" strokeLinecap="round" strokeDasharray="1500" strokeDashoffset={sketch2} />
-
-        {/* Entrance arch */}
-        <AnimatedPath d="M157 106 Q180 92 203 106" stroke={GOLD} strokeWidth="0.9" fill="none" strokeLinecap="round" strokeDasharray="1500" strokeDashoffset={sketch2} />
-
-        {/* Floor division line */}
-        <AnimatedPath d="M98 140 Q180 139 262 140" stroke={FAINT} strokeWidth="0.5" fill="none" strokeLinecap="round" strokeDasharray="1500" strokeDashoffset={sketch2} />
+        {/* Second floor overhang / fascia */}
+        <AnimatedPath d="M90 130 L330 130" stroke={H} strokeWidth="1" fill="none" strokeDasharray="3000" strokeDashoffset={p1} />
+        <AnimatedPath d="M88 132 L332 132" stroke={L} strokeWidth="0.5" fill="none" strokeDasharray="3000" strokeDashoffset={p1} />
 
 
-        {/* ═══ SKETCH 3: Windows, door, landscaping (fade in) ═══ */}
-        <Animated.View style={{ opacity: sketch3, position: 'absolute' }}>
-          <Svg width={W} height={250} viewBox="0 0 380 210">
+        {/* ══ P2: Roof, columns, porch, chimney ══ */}
 
-            {/* Upper windows — slightly imperfect rectangles */}
-            {[110, 132, 226, 248].map((x, i) => (
-              <G key={`u${i}`}>
-                <Path d={`M${x} 104 L${x + 15} 104 L${x + 15} 122 L${x} 122 Z`} stroke={PEN} strokeWidth="0.7" fill="none" strokeLinecap="round" />
-                <Line x1={x + 7} y1={104} x2={x + 8} y2={122} stroke={PEN2} strokeWidth="0.4" />
-                <Line x1={x} y1={113} x2={x + 15} y2={113} stroke={PEN2} strokeWidth="0.4" />
+        {/* Main roof */}
+        <AnimatedPath d="M80 75 L80 55 L340 55 L340 75" stroke={H} strokeWidth="1.5" fill="none" strokeLinejoin="round" strokeDasharray="2000" strokeDashoffset={p2} />
+        {/* Roof overhang */}
+        <AnimatedPath d="M75 75 L345 75" stroke={H} strokeWidth="1.2" fill="none" strokeDasharray="2000" strokeDashoffset={p2} />
+        {/* Roof fascia detail */}
+        <AnimatedPath d="M78 77 L342 77" stroke={L} strokeWidth="0.5" fill="none" strokeDasharray="2000" strokeDashoffset={p2} />
+        {/* Roof top line */}
+        <AnimatedPath d="M78 55 L342 55" stroke={H} strokeWidth="1" fill="none" strokeDasharray="2000" strokeDashoffset={p2} />
+
+        {/* Roof hatching */}
+        <AnimatedPath d={Array.from({length: 20}, (_, i) => `M${85 + i * 13} 58 L${85 + i * 13} 73`).join(' ')} stroke={G2} strokeWidth="0.3" fill="none" strokeDasharray="2000" strokeDashoffset={p2} />
+
+        {/* Chimney */}
+        <AnimatedPath d="M290 55 L290 38 L308 38 L308 55" stroke={S} strokeWidth="1" fill="none" strokeLinejoin="round" strokeDasharray="2000" strokeDashoffset={p2} />
+        <AnimatedPath d="M288 38 L310 38" stroke={S} strokeWidth="0.8" fill="none" strokeDasharray="2000" strokeDashoffset={p2} />
+
+        {/* Porch columns */}
+        <AnimatedPath d="M130 185 L130 130 M170 185 L170 130 M250 185 L250 130 M290 185 L290 130" stroke={S} strokeWidth="1" fill="none" strokeDasharray="2000" strokeDashoffset={p2} />
+        {/* Column bases */}
+        <AnimatedPath d="M127 185 L133 185 M167 185 L173 185 M247 185 L253 185 M287 185 L293 185" stroke={S} strokeWidth="1.2" fill="none" strokeDasharray="2000" strokeDashoffset={p2} />
+        {/* Column capitals */}
+        <AnimatedPath d="M128 132 L132 130 M168 132 L172 130 M248 132 L252 130 M288 132 L292 130" stroke={L} strokeWidth="0.6" fill="none" strokeDasharray="2000" strokeDashoffset={p2} />
+
+        {/* Porch ceiling lines */}
+        <AnimatedPath d="M110 125 L310 125" stroke={L} strokeWidth="0.4" fill="none" strokeDasharray="2000" strokeDashoffset={p2} />
+
+        {/* Steps */}
+        <AnimatedPath d="M160 195 L260 195 M155 198 L265 198 M150 201 L270 201" stroke={L} strokeWidth="0.5" fill="none" strokeDasharray="2000" strokeDashoffset={p2} />
+
+
+        {/* ══ P3: Windows, doors, details, landscaping (fade in) ══ */}
+        <Animated.View style={{ opacity: p3, position: 'absolute' }}>
+          <Svg width={W} height={270} viewBox="0 0 420 240">
+
+            {/* ── Second floor windows (larger) ── */}
+            {[110, 140, 170, 240, 270, 300].map((x, i) => (
+              <G key={`uw${i}`}>
+                <Path d={`M${x} 82 L${x + 22} 82 L${x + 22} 120 L${x} 120 Z`} stroke={S} strokeWidth="0.9" fill="none" />
+                {/* Mullions */}
+                <Line x1={x + 11} y1={82} x2={x + 11} y2={120} stroke={L} strokeWidth="0.5" />
+                <Line x1={x} y1={96} x2={x + 22} y2={96} stroke={L} strokeWidth="0.5" />
+                <Line x1={x} y1={108} x2={x + 22} y2={108} stroke={L} strokeWidth="0.4" />
+                {/* Sill */}
+                <Line x1={x - 1} y1={121} x2={x + 23} y2={121} stroke={S} strokeWidth="0.6" />
+                {/* Shadow hatching inside */}
+                <Path d={`M${x + 1} 83 L${x + 5} 95 M${x + 6} 83 L${x + 10} 95`} stroke={G2} strokeWidth="0.3" fill="none" />
               </G>
             ))}
 
-            {/* Lower windows */}
-            {[110, 132, 226, 248].map((x, i) => (
-              <G key={`l${i}`}>
-                <Path d={`M${x} 148 L${x + 15} 148 L${x + 15} 168 L${x} 168 Z`} stroke={PEN} strokeWidth="0.7" fill="none" strokeLinecap="round" />
-                <Line x1={x + 7} y1={148} x2={x + 8} y2={168} stroke={PEN2} strokeWidth="0.4" />
+            {/* ── Ground floor windows (between columns) ── */}
+            {[135, 255].map((x, i) => (
+              <G key={`gw${i}`}>
+                <Path d={`M${x} 140 L${x + 30} 140 L${x + 30} 178 L${x} 178 Z`} stroke={S} strokeWidth="0.8" fill="none" />
+                <Line x1={x + 10} y1={140} x2={x + 10} y2={178} stroke={L} strokeWidth="0.4" />
+                <Line x1={x + 20} y1={140} x2={x + 20} y2={178} stroke={L} strokeWidth="0.4" />
+                <Line x1={x} y1={155} x2={x + 30} y2={155} stroke={L} strokeWidth="0.4" />
+                <Line x1={x - 1} y1={179} x2={x + 31} y2={179} stroke={S} strokeWidth="0.5" />
+                <Path d={`M${x + 1} 141 L${x + 4} 153 M${x + 5} 141 L${x + 8} 153`} stroke={G2} strokeWidth="0.3" fill="none" />
               </G>
             ))}
 
-            {/* Wing windows */}
-            <Path d="M68 140 L82 140 L82 158 L68 158 Z" stroke={PEN} strokeWidth="0.6" fill="none" strokeLinecap="round" />
-            <Path d="M278 140 L292 140 L292 158 L278 158 Z" stroke={PEN} strokeWidth="0.6" fill="none" strokeLinecap="round" />
+            {/* ── Wing windows ── */}
+            {[68, 338].map((x, i) => (
+              <G key={`ww${i}`}>
+                <Path d={`M${x} 152 L${x + 14} 152 L${x + 14} 175 L${x} 175 Z`} stroke={S} strokeWidth="0.7" fill="none" />
+                <Line x1={x + 7} y1={152} x2={x + 7} y2={175} stroke={L} strokeWidth="0.4" />
+                <Line x1={x} y1={163} x2={x + 14} y2={163} stroke={L} strokeWidth="0.3" />
+              </G>
+            ))}
 
-            {/* Door — arched */}
-            <Path d="M172 174 L172 148 Q180 138 188 148 L188 174" stroke={GOLD} strokeWidth="0.9" fill="none" strokeLinecap="round" />
-            <Circle cx="185" cy="162" r="1" stroke={GOLD} strokeWidth="0.6" fill="none" />
+            {/* ── Main entrance door ── */}
+            <Path d="M195 185 L195 148 Q210 138 225 148 L225 185" stroke={A} strokeWidth="1.1" fill="none" strokeLinecap="round" />
+            <Path d="M198 185 L198 150 Q210 142 222 150 L222 185" stroke="rgba(251,191,36,0.2)" strokeWidth="0.5" fill="none" />
+            <Circle cx="220" cy="170" r="1.5" stroke={A} strokeWidth="0.7" fill="none" />
 
-            {/* Steps — loose lines */}
-            <Path d="M168 175 Q180 174 192 175" stroke={PEN2} strokeWidth="0.5" fill="none" strokeLinecap="round" />
-            <Path d="M165 178 Q180 177 195 178" stroke={PEN2} strokeWidth="0.4" fill="none" strokeLinecap="round" />
-            <Path d="M162 181 Q180 180 198 181" stroke={FAINT} strokeWidth="0.4" fill="none" strokeLinecap="round" />
+            {/* ── Side entrance ── */}
+            <Path d="M100 185 L100 160 L118 160 L118 185" stroke={S} strokeWidth="0.7" fill="none" />
 
-            {/* Garage */}
-            <Path d="M230 150 L260 150 L260 174 L230 174 Z" stroke={PEN2} strokeWidth="0.6" fill="none" strokeLinecap="round" />
-            <Line x1="232" y1="156" x2="258" y2="156" stroke={FAINT} strokeWidth="0.4" />
-            <Line x1="232" y1="162" x2="258" y2="162" stroke={FAINT} strokeWidth="0.4" />
-            <Line x1="232" y1="168" x2="258" y2="168" stroke={FAINT} strokeWidth="0.4" />
+            {/* ── Facade panel lines ── */}
+            <Line x1="95" y1="100" x2="95" y2="125" stroke={G2} strokeWidth="0.3" />
+            <Line x1="325" y1="100" x2="325" y2="125" stroke={G2} strokeWidth="0.3" />
 
-            {/* Left tree — loose sketch */}
-            <Path d="M38 182 L37 158 Q36 156 38 155" stroke={PEN2} strokeWidth="0.6" fill="none" strokeLinecap="round" />
-            <Path d="M28 160 Q32 148 38 144 Q44 148 48 160 Q43 155 38 152 Q33 155 28 160" stroke={PEN2} strokeWidth="0.6" fill="none" strokeLinecap="round" />
+            {/* ── Landscaping — detailed trees ── */}
+            {/* Left tree */}
+            <Path d="M40 195 L40 150" stroke={L} strokeWidth="0.7" fill="none" />
+            <Path d="M28 165 Q30 148 40 140 Q50 148 52 165" stroke={S} strokeWidth="0.6" fill="none" strokeLinecap="round" />
+            <Path d="M32 160 Q36 145 40 138 Q44 145 48 160" stroke={L} strokeWidth="0.5" fill="none" />
+            <Path d="M25 170 Q33 155 40 145 Q47 155 55 170" stroke={G2} strokeWidth="0.4" fill="none" />
 
-            {/* Right tree */}
-            <Path d="M342 182 L341 158 Q342 156 343 155" stroke={PEN2} strokeWidth="0.6" fill="none" strokeLinecap="round" />
-            <Path d="M332 160 Q336 148 342 144 Q348 148 352 160 Q347 155 342 152 Q337 155 332 160" stroke={PEN2} strokeWidth="0.6" fill="none" strokeLinecap="round" />
+            {/* Right tree — slightly different shape */}
+            <Path d="M380 195 L380 145" stroke={L} strokeWidth="0.7" fill="none" />
+            <Path d="M366 162 Q370 142 380 132 Q390 142 394 162" stroke={S} strokeWidth="0.6" fill="none" strokeLinecap="round" />
+            <Path d="M370 155 Q375 140 380 133 Q385 140 390 155" stroke={L} strokeWidth="0.5" fill="none" />
+            <Path d="M372 168 Q376 150 380 138 Q384 150 388 168" stroke={G2} strokeWidth="0.4" fill="none" />
 
-            {/* Shadow hatching on right wall */}
-            <Path d="M264 100 L268 108 M264 112 L268 120 M264 124 L268 132 M264 136 L268 144 M264 148 L268 156 M264 160 L268 168" stroke={FAINT} strokeWidth="0.3" fill="none" strokeLinecap="round" />
+            {/* Small bushes */}
+            <Path d="M55 192 Q58 186 62 192 Q65 187 68 192" stroke={L} strokeWidth="0.5" fill="none" />
+            <Path d="M350 192 Q353 186 356 192 Q359 187 362 192" stroke={L} strokeWidth="0.5" fill="none" />
 
-            {/* Shadow hatching under roof */}
-            <Path d="M100 97 L105 100 M120 97 L125 100 M140 97 L145 100 M220 97 L225 100 M240 97 L245 100 M255 97 L260 100" stroke={FAINT} strokeWidth="0.3" fill="none" strokeLinecap="round" />
+            {/* ── Shadow hatching — right facade ── */}
+            {Array.from({length: 10}, (_, i) => (
+              <Line key={`sh${i}`} x1={337} y1={80 + i * 10} x2={342} y2={85 + i * 10} stroke={G2} strokeWidth="0.3" />
+            ))}
 
-            {/* Construction marks — small crosses */}
-            <G opacity={0.15}>
-              <Path d="M58 174 L66 174 M62 170 L62 178" stroke={PEN} strokeWidth="0.5" />
-              <Path d="M294 174 L302 174 M298 170 L298 178" stroke={PEN} strokeWidth="0.5" />
-              <Path d="M177 54 L183 54 M180 51 L180 57" stroke={GOLD} strokeWidth="0.5" />
+            {/* ── Under-porch shadow hatching ── */}
+            {Array.from({length: 14}, (_, i) => (
+              <Line key={`ph${i}`} x1={115 + i * 14} y1={126} x2={118 + i * 14} y2={130} stroke={G2} strokeWidth="0.3" />
+            ))}
+
+            {/* ── Construction dimension annotations ── */}
+            <G opacity={0.12}>
+              {/* Horizontal dimension */}
+              <Line x1="65" y1="210" x2="355" y2="210" stroke={S} strokeWidth="0.5" />
+              <Line x1="65" y1="207" x2="65" y2="213" stroke={S} strokeWidth="0.5" />
+              <Line x1="355" y1="207" x2="355" y2="213" stroke={S} strokeWidth="0.5" />
+              {/* Vertical dimension */}
+              <Line x1="15" y1="55" x2="15" y2="195" stroke={S} strokeWidth="0.5" />
+              <Line x1="12" y1="55" x2="18" y2="55" stroke={S} strokeWidth="0.5" />
+              <Line x1="12" y1="195" x2="18" y2="195" stroke={S} strokeWidth="0.5" />
+              {/* Tick marks */}
+              <Line x1="210" y1="207" x2="210" y2="213" stroke={S} strokeWidth="0.4" />
             </G>
-
-            {/* Ground texture — scattered dots */}
-            {[45, 75, 120, 155, 205, 245, 290, 320, 350].map(x => (
-              <Circle key={`d${x}`} cx={x} cy={184 + (x % 3)} r="0.5" fill={FAINT} />
-            ))}
           </Svg>
         </Animated.View>
 
-        {/* Subtle gold glow on structure outline */}
+        {/* Subtle accent glow */}
         <AnimatedPath
-          d="M62 174 L61 127 L97 126 L96 96 L262 95 L263 126 L298 127 L298 174"
-          stroke="rgba(251,191,36,0.06)"
-          strokeWidth={glow.interpolate({ inputRange: [0, 1], outputRange: [0, 5] })}
-          strokeLinecap="round" strokeLinejoin="round"
-          fill="none"
+          d="M65 185 L65 145 L85 145 L85 130 L95 130 L95 75 L325 75 L325 130 L335 130 L335 145 L355 145 L355 185"
+          stroke="rgba(251,191,36,0.05)"
+          strokeWidth={glow.interpolate({ inputRange: [0, 1], outputRange: [0, 4] })}
+          strokeLinejoin="round" fill="none"
         />
       </Svg>
     </View>
