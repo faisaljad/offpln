@@ -26,6 +26,13 @@ const MENU_SECTIONS = [
       { icon: 'help-circle-outline', label: 'Support', route: '/support', color: '#6366f1', bg: '#eef2ff' },
     ],
   },
+  {
+    items: [
+      { icon: 'information-circle-outline', label: 'About Us', route: '/about', color: '#0284c7', bg: '#eff6ff' },
+      { icon: 'document-text-outline', label: 'Terms & Conditions', route: '/terms', color: '#8b5cf6', bg: '#f5f3ff' },
+      { icon: 'shield-checkmark-outline', label: 'Privacy Policy', route: '/privacy', color: '#059669', bg: '#ecfdf5' },
+    ],
+  },
 ];
 
 export default function ProfileScreen() {

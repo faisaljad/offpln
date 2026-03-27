@@ -135,6 +135,20 @@
       </div>
     </div>
 
+    <!-- About Us -->
+    <div class="card space-y-4">
+      <h2 class="text-lg font-semibold text-gray-900">About Us</h2>
+      <p class="text-sm text-gray-500">Information about the company displayed in the mobile app.</p>
+      <RichEditor name="aboutUs" value={data.settings?.aboutUs ?? ''} />
+    </div>
+
+    <!-- Privacy Policy -->
+    <div class="card space-y-4">
+      <h2 class="text-lg font-semibold text-gray-900">Privacy Policy</h2>
+      <p class="text-sm text-gray-500">Privacy policy content displayed in the mobile app.</p>
+      <RichEditor name="privacyPolicy" value={data.settings?.privacyPolicy ?? ''} />
+    </div>
+
     <div class="flex justify-end">
       <button type="submit" disabled={loading} class="btn-primary">
         {loading ? 'Saving...' : 'Save Settings'}

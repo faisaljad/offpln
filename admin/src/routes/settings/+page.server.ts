@@ -31,6 +31,8 @@ export const actions: Actions = {
     const supportAddress = formData.get('supportAddress') as string;
     const supportWorkingHours = formData.get('supportWorkingHours') as string;
     const supportWebsite = formData.get('supportWebsite') as string;
+    const aboutUs = formData.get('aboutUs') as string;
+    const privacyPolicy = formData.get('privacyPolicy') as string;
 
     try {
       const res = await fetch(`${apiUrl}/api/v1/settings`, {
@@ -39,7 +41,7 @@ export const actions: Actions = {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ termsAndConditions, paymentTransferDetails, transferListingTerms, transferBuyingTerms, supportPhone, supportEmail, supportWhatsapp, supportAddress, supportWorkingHours, supportWebsite }),
+        body: JSON.stringify({ termsAndConditions, paymentTransferDetails, transferListingTerms, transferBuyingTerms, supportPhone, supportEmail, supportWhatsapp, supportAddress, supportWorkingHours, supportWebsite, aboutUs, privacyPolicy }),
       });
       const json = await res.json();
       if (!res.ok) return fail(res.status, { error: json.message ?? 'Failed to save' });

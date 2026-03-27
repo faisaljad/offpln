@@ -203,6 +203,8 @@ model AppSettings {
   supportAddress         String   @default("")
   supportWorkingHours    String   @default("")
   supportWebsite         String   @default("")
+  aboutUs                String   @default("")
+  privacyPolicy          String   @default("")
   updatedAt              DateTime @updatedAt
 }
 
