@@ -211,19 +211,23 @@ export default function PropertyDetailScreen() {
           {/* ROI Badge floating on image */}
           <View style={styles.roiBadgeWrapper}>
             <LinearGradient
-              colors={['#0c4a6e', '#0369a1']}
+              colors={property.status === 'SOLD' ? ['#059669', '#047857'] : ['#0c4a6e', '#0369a1']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.roiBadge}
             >
               <Ionicons
-                name={property.profitType === 'PRICE_INCREASE' ? 'trending-up' : 'cash-outline'}
+                name="trending-up"
                 size={14}
                 color="#fbbf24"
               />
-              <Text style={styles.roiText}>{property.roi}%</Text>
+              <Text style={styles.roiText}>
+                {property.status === 'SOLD' && property.soldPrice && property.totalPrice
+                  ? ((property.soldPrice - property.totalPrice) / property.totalPrice * 100).toFixed(1)
+                  : property.roi}%
+              </Text>
               <Text style={styles.roiLabel}>
-                {property.profitType === 'PRICE_INCREASE' ? 'Price Increase' : 'Profit'}
+                {property.status === 'SOLD' ? 'Actual Profit' : property.profitType === 'PRICE_INCREASE' ? 'Price Increase' : 'Expected ROI'}
               </Text>
             </LinearGradient>
           </View>
