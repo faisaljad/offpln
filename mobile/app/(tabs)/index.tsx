@@ -101,29 +101,33 @@ export default function PropertiesScreen() {
 
   function renderProperty({ item }: { item: Property }) {
     const isSoldOut = item.status === 'SOLD_OUT' || item.availableShares === 0;
+    const isSold = item.status === 'SOLD';
+    const isUnavailable = isSoldOut || isSold;
     const soldPct = Math.round(((item.totalShares - item.availableShares) / item.totalShares) * 100);
 
     return (
       <TouchableOpacity
         style={styles.card}
         onPress={() => router.push(`/property/${item.id}`)}
-        activeOpacity={isSoldOut ? 0.7 : 0.92}
+        activeOpacity={isUnavailable ? 0.7 : 0.92}
       >
         <View style={styles.imageWrapper}>
           <Image
             source={{ uri: item.images?.[0] || 'https://via.placeholder.com/400x240' }}
-            style={[styles.image, isSoldOut && styles.imageDimmed]}
+            style={[styles.image, isUnavailable && styles.imageDimmed]}
             resizeMode="cover"
           />
-          {/* Bottom gradient overlay for text readability */}
           <LinearGradient
             colors={['transparent', 'rgba(0,0,0,0.55)']}
             style={styles.imageGradient}
           />
-          {isSoldOut && <View style={styles.soldOutOverlay} />}
+          {isUnavailable && <View style={styles.soldOutOverlay} />}
 
-          {/* Floating ROI badge or sold out ribbon */}
-          {isSoldOut ? (
+          {isSold ? (
+            <View style={styles.soldRibbon}>
+              <Text style={styles.soldRibbonText}>SOLD</Text>
+            </View>
+          ) : isSoldOut ? (
             <View style={styles.soldOutRibbon}>
               <Text style={styles.soldOutRibbonText}>SOLD OUT</Text>
             </View>
@@ -676,6 +680,21 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   soldOutRibbonText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  soldRibbon: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    backgroundColor: '#059669',
+    borderRadius: 50,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  soldRibbonText: {
     color: '#fff',
     fontSize: 11,
     fontWeight: '800',
