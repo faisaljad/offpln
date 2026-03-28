@@ -407,35 +407,31 @@ export default function PropertyDetailScreen() {
 
       {/* Bottom CTA */}
       {property.status === 'SOLD' ? (
-        <View style={[styles.soldOutBar, styles.soldBar, { paddingBottom: Math.max(insets.bottom, 20) }]}>
-          <LinearGradient
-            colors={['#059669', '#047857']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.soldOutGradient}
-          >
-            <Ionicons name="checkmark-circle" size={24} color="#fff" />
-            <View style={{ marginLeft: 12 }}>
-              <Text style={styles.soldOutBarText}>SOLD</Text>
-              <Text style={styles.soldOutBarSub}>Property has been sold — ROI distributed</Text>
-            </View>
-          </LinearGradient>
-        </View>
+        <LinearGradient
+          colors={['#059669', '#047857']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[styles.soldOutBar, { paddingBottom: Math.max(insets.bottom, 20) }]}
+        >
+          <Ionicons name="checkmark-circle" size={24} color="#fff" />
+          <View style={{ marginLeft: 12 }}>
+            <Text style={styles.soldOutBarText}>SOLD</Text>
+            <Text style={styles.soldOutBarSub}>Property has been sold — ROI distributed</Text>
+          </View>
+        </LinearGradient>
       ) : property.availableShares === 0 || property.status === 'SOLD_OUT' ? (
-        <View style={[styles.soldOutBar, { paddingBottom: Math.max(insets.bottom, 20) }]}>
-          <LinearGradient
-            colors={['#1f2937', '#111827']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.soldOutGradient}
-          >
-            <Ionicons name="lock-closed" size={22} color="#9ca3af" />
-            <View style={{ marginLeft: 12 }}>
-              <Text style={styles.soldOutBarText}>SOLD OUT</Text>
-              <Text style={styles.soldOutBarSub}>All shares have been taken</Text>
-            </View>
-          </LinearGradient>
-        </View>
+        <LinearGradient
+          colors={['#1f2937', '#111827']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[styles.soldOutBar, { paddingBottom: Math.max(insets.bottom, 20) }]}
+        >
+          <Ionicons name="lock-closed" size={22} color="#9ca3af" />
+          <View style={{ marginLeft: 12 }}>
+            <Text style={styles.soldOutBarText}>SOLD OUT</Text>
+            <Text style={styles.soldOutBarSub}>All shares have been taken</Text>
+          </View>
+        </LinearGradient>
       ) : (
         <BlurView intensity={80} tint="light" style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 20) }]}>
           <View style={styles.bottomBarInner}>
@@ -797,9 +793,6 @@ const styles = StyleSheet.create({
   // Sold out bar
   soldOutBar: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
-  },
-  soldBar: {},
-  soldOutGradient: {
     flexDirection: 'row', alignItems: 'center',
     justifyContent: 'center', paddingVertical: 20, paddingHorizontal: 24,
   },
