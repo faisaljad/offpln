@@ -41,6 +41,18 @@ export class AuthController {
     return this.authService.verifyLoginOtp(email, code);
   }
 
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  resetPassword(@Body() body: { email: string; code: string; newPassword: string }) {
+    return this.authService.resetPassword(body.email, body.code, body.newPassword);
+  }
+
   @Post('refresh')
   @UseGuards(JwtRefreshGuard)
   @HttpCode(HttpStatus.OK)

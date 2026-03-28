@@ -225,6 +225,61 @@ export class AuthService {
     });
   }
 
+  async forgotPassword(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) throw new UnauthorizedException('No account found with this email');
+
+    await this.prisma.otpCode.updateMany({
+      where: { target: email, channel: 'reset', used: false },
+      data: { used: true },
+    });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await this.prisma.otpCode.create({
+      data: { target: email, code: otp, channel: 'reset', expiresAt },
+    });
+
+    if (this.transporter) {
+      const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+      await this.transporter.sendMail({
+        from: `"OffPlan" <${from}>`,
+        to: email,
+        subject: `Reset your password — ${otp}`,
+        html: `
+          <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
+            <div style="background:#0c4a6e;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px">
+              <h1 style="color:#fbbf24;margin:0;font-size:28px">OffPlan</h1>
+            </div>
+            <h2 style="color:#111827;font-size:20px;margin:0 0 8px">Password Reset</h2>
+            <p style="color:#6b7280;font-size:14px;margin:0 0 24px">Enter this code to reset your password. It expires in 10 minutes.</p>
+            <div style="background:#f9fafb;border:2px dashed #e5e7eb;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px">
+              <span style="font-size:40px;font-weight:800;letter-spacing:12px;color:#0c4a6e">${otp}</span>
+            </div>
+          </div>
+        `,
+      }).catch(() => {});
+    }
+
+    return { sent: true, email, message: 'Reset code sent to your email' };
+  }
+
+  async resetPassword(email: string, code: string, newPassword: string) {
+    const otp = await this.prisma.otpCode.findFirst({
+      where: { target: email, code, channel: 'reset', used: false, expiresAt: { gt: new Date() } },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!otp) throw new UnauthorizedException('Invalid or expired code');
+
+    await this.prisma.otpCode.update({ where: { id: otp.id }, data: { used: true } });
+
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await this.prisma.user.update({ where: { email }, data: { password: hashed } });
+
+    return { success: true, message: 'Password reset successfully' };
+  }
+
   private sanitize(user: any) {
     const { password, ...rest } = user;
     return rest;
