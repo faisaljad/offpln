@@ -133,7 +133,7 @@ export default function PropertiesScreen() {
               {item.soldPrice && item.totalPrice ? (
                 <LinearGradient colors={['#059669', '#047857']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[styles.badge, { top: 50 }]}>
                   <Ionicons name="trending-up" size={12} color="#fff" style={{ marginRight: 3 }} />
-                  <Text style={styles.badgeText}>{Math.round(((item.soldPrice - item.totalPrice) / item.totalPrice) * 100)}% ROI</Text>
+                  <Text style={styles.badgeText}>{((item.soldPrice - item.totalPrice) / item.totalPrice * 100).toFixed(1)}% Profit</Text>
                 </LinearGradient>
               ) : null}
             </>
