@@ -68,6 +68,7 @@ export class PropertiesService {
           roi: true,
           images: true,
           status: true,
+          soldPrice: true,
           createdAt: true,
           area: true,
           handoverDate: true,

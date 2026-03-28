@@ -28,6 +28,8 @@ interface Property {
   pricePerShare: number;
   availableShares: number;
   totalShares: number;
+  totalPrice: number;
+  soldPrice: number | null;
   roi: number;
   images: string[];
   status: string;
@@ -124,9 +126,17 @@ export default function PropertiesScreen() {
           {isUnavailable && <View style={styles.soldOutOverlay} />}
 
           {isSold ? (
-            <View style={styles.soldRibbon}>
-              <Text style={styles.soldRibbonText}>SOLD</Text>
-            </View>
+            <>
+              <View style={styles.soldRibbon}>
+                <Text style={styles.soldRibbonText}>SOLD</Text>
+              </View>
+              {item.soldPrice && item.totalPrice ? (
+                <LinearGradient colors={['#059669', '#047857']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[styles.badge, { top: 50 }]}>
+                  <Ionicons name="trending-up" size={12} color="#fff" style={{ marginRight: 3 }} />
+                  <Text style={styles.badgeText}>{Math.round(((item.soldPrice - item.totalPrice) / item.totalPrice) * 100)}% ROI</Text>
+                </LinearGradient>
+              ) : null}
+            </>
           ) : isSoldOut ? (
             <View style={styles.soldOutRibbon}>
               <Text style={styles.soldOutRibbonText}>SOLD OUT</Text>
@@ -153,18 +163,28 @@ export default function PropertiesScreen() {
           </View>
         </View>
 
-        <View style={[styles.cardBody, isSoldOut && styles.cardBodyDimmed]}>
+        <View style={[styles.cardBody, isUnavailable && styles.cardBodyDimmed]}>
           <View style={styles.priceRow}>
             <View>
               <Text style={styles.priceLabel}>Price per share</Text>
               <View style={styles.priceValueRow}>
-                <Text style={[styles.price, isSoldOut && styles.priceDimmed]}>
+                <Text style={[styles.price, isUnavailable && styles.priceDimmed]}>
                   {formatPrice(item.pricePerShare)}
                 </Text>
                 <Text style={styles.priceUnit}> / share</Text>
               </View>
             </View>
-            {!isSoldOut && (
+            {isSold ? (
+              <View style={styles.soldBtnStatic}>
+                <Ionicons name="checkmark-circle" size={14} color="#059669" />
+                <Text style={styles.soldBtnText}>Sold</Text>
+              </View>
+            ) : isSoldOut ? (
+              <View style={styles.soldOutBtnStatic}>
+                <Ionicons name="lock-closed" size={13} color="#64748b" />
+                <Text style={styles.soldOutBtnText}>Sold Out</Text>
+              </View>
+            ) : (
               <TouchableOpacity
                 style={styles.investBtn}
                 onPress={() => router.push(`/property/${item.id}`)}
@@ -699,6 +719,38 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
+  },
+  soldBtnStatic: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#ecfdf5',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#d1fae5',
+  },
+  soldBtnText: {
+    color: '#059669',
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  soldOutBtnStatic: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#f1f5f9',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  soldOutBtnText: {
+    color: '#64748b',
+    fontWeight: '700',
+    fontSize: 13,
   },
   imageTextOverlay: {
     position: 'absolute',
