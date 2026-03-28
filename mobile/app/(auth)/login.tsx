@@ -24,6 +24,7 @@ export default function LoginScreen() {
   const setAuth = useAuthStore((s) => s.setAuth);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
   const [biometricType, setBiometricType] = useState<'fingerprint' | 'face' | 'iris' | null>(null);
@@ -247,7 +248,7 @@ export default function LoginScreen() {
                 </View>
               </View>
 
-              <View style={styles.inputGroup}>
+              <View style={styles.inputGroupPassword}>
                 <Text style={styles.label}>Password</Text>
                 <View style={styles.inputWrapper}>
                   <Ionicons name="lock-closed-outline" size={18} color="#94a3b8" style={styles.inputIcon} />
@@ -257,8 +258,11 @@ export default function LoginScreen() {
                     onChangeText={setPassword}
                     placeholder="Enter your password"
                     placeholderTextColor="#cbd5e1"
-                    secureTextEntry
+                    secureTextEntry={!showPassword}
                   />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
+                    <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94a3b8" />
+                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -484,6 +488,9 @@ const styles = StyleSheet.create({
   inputGroup: {
     marginBottom: 18,
   },
+  inputGroupPassword: {
+    marginBottom:5
+  },
   label: {
     fontSize: 13,
     fontWeight: '600',
@@ -610,7 +617,7 @@ const styles = StyleSheet.create({
   },
   forgotBtn: {
     alignSelf: 'flex-end' as const,
-    marginTop: 4,
+    marginTop: 0,
     marginBottom: 4,
     paddingVertical: 4,
   },
@@ -618,5 +625,9 @@ const styles = StyleSheet.create({
     color: '#0284c7',
     fontWeight: '600',
     fontSize: 13,
+  },
+  eyeBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
 });

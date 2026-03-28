@@ -21,6 +21,7 @@ import { useAuthStore } from '../../store/auth';
 export default function RegisterScreen() {
   const setAuth = useAuthStore((s) => s.setAuth);
   const [form, setForm] = useState({ name: '', email: '', phone: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // OTP step
@@ -161,8 +162,13 @@ export default function RegisterScreen() {
                       placeholderTextColor="#cbd5e1"
                       keyboardType={field.type as any}
                       autoCapitalize={field.key === 'name' ? 'words' : 'none'}
-                      secureTextEntry={field.secure}
+                      secureTextEntry={field.secure && !showPassword}
                     />
+                    {field.secure && (
+                      <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>
+                        <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#94a3b8" />
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               ))}
@@ -478,5 +484,9 @@ const styles = StyleSheet.create({
     color: '#0284c7',
     fontWeight: '600',
     fontSize: 14,
+  },
+  eyeBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
 });
