@@ -130,7 +130,7 @@ export default function RegisterScreen() {
 
             <View style={styles.logoContainer}>
               <View style={styles.logoIcon}>
-                <Ionicons name="business" size={24} color="#fbbf24" />
+                <Ionicons name="business" size={30} color="#fbbf24" />
               </View>
               <Text style={styles.logo}>OffPlan</Text>
               <Text style={styles.subtitle}>Create Your Investor Account</Text>
@@ -280,8 +280,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   headerSafe: {
-    paddingTop: Platform.OS === 'android' ? 48 : 0,
-    paddingBottom: 24,
+    paddingTop: Platform.OS === 'android' ? 60 : 20,
+    paddingBottom: 44,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -307,16 +307,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 16,
+    width: 60,
+    height: 60,
+    borderRadius: 20,
     backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
   },
   logo: {
-    fontSize: 32,
+    fontSize: 40,
     fontWeight: '800',
     color: '#fbbf24',
     letterSpacing: -1.5,

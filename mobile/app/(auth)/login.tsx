@@ -214,7 +214,7 @@ export default function LoginScreen() {
 
             <View style={styles.logoContainer}>
               <View style={styles.logoIcon}>
-                <Ionicons name="business" size={28} color="#fbbf24" />
+                <Ionicons name="business" size={34} color="#fbbf24" />
               </View>
               <Text style={styles.logo}>OffPlan</Text>
               <Text style={styles.subtitle}>Fractional Property Investment</Text>
@@ -380,8 +380,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   headerSafe: {
-    paddingTop: Platform.OS === 'android' ? 48 : 0,
-    paddingBottom: 32,
+    paddingTop: Platform.OS === 'android' ? 60 : 20,
+    paddingBottom: 52,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -416,24 +416,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 18,
+    width: 68,
+    height: 68,
+    borderRadius: 22,
     backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 14,
   },
   logo: {
-    fontSize: 38,
+    fontSize: 44,
     fontWeight: '800',
     color: '#fbbf24',
     letterSpacing: -1.5,
   },
   subtitle: {
     color: '#93c5fd',
-    marginTop: 6,
-    fontSize: 14,
+    marginTop: 8,
+    fontSize: 15,
     fontWeight: '500',
     letterSpacing: 0.3,
   },
