@@ -376,7 +376,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   headerGradient: {
-    paddingBottom: 16,
+    paddingTop:100,
+    paddingBottom: 50,
     overflow: 'hidden',
   },
   headerSafe: {

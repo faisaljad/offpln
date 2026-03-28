@@ -33,8 +33,8 @@ export default function RegisterScreen() {
   }
 
   async function handleSendOtp() {
-    if (!form.name || !form.email || !form.password) {
-      Toast.show({ type: 'error', text1: 'Please fill required fields' });
+    if (!form.name || !form.email || !form.phone || !form.password) {
+      Toast.show({ type: 'error', text1: 'Please fill all required fields' });
       return;
     }
     if (form.password.length < 8) {
@@ -103,7 +103,7 @@ export default function RegisterScreen() {
   const INPUT_FIELDS = [
     { key: 'name', label: 'Full Name', placeholder: 'Ahmed Al Mansouri', type: 'default', icon: 'person-outline' },
     { key: 'email', label: 'Email', placeholder: 'investor@example.com', type: 'email-address', icon: 'mail-outline' },
-    { key: 'phone', label: 'Phone (optional)', placeholder: '+971501234567', type: 'phone-pad', icon: 'call-outline' },
+    { key: 'phone', label: 'Phone', placeholder: '+971501234567', type: 'phone-pad', icon: 'call-outline' },
     { key: 'password', label: 'Password', placeholder: '••••••••', type: 'default', secure: true, icon: 'lock-closed-outline' },
   ];
 
@@ -149,7 +149,7 @@ export default function RegisterScreen() {
               {INPUT_FIELDS.map((field) => (
                 <View key={field.key} style={styles.inputGroup}>
                   <Text style={styles.label}>
-                    {field.label} {field.key !== 'phone' && <Text style={styles.required}>*</Text>}
+                    {field.label} <Text style={styles.required}>*</Text>
                   </Text>
                   <View style={styles.inputWrapper}>
                     <Ionicons name={field.icon as any} size={18} color="#94a3b8" style={styles.inputIconStyle} />
@@ -276,7 +276,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   headerGradient: {
-    paddingBottom: 16,
+    paddingBottom: 50,
+    paddingTop: 100,
     overflow: 'hidden',
   },
   headerSafe: {
