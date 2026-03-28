@@ -25,7 +25,7 @@ interface Investment {
   totalAmount: number;
   status: string;
   createdAt: string;
-  property: { title: string; location: string; roi: number };
+  property: { title: string; location: string; roi: number; status: string; totalPrice: number; soldPrice: number | null };
   payments: { status: string; amount: number; dueDate?: string }[];
   transfer?: Transfer | null;
 }
@@ -152,9 +152,23 @@ export default function InvestmentsScreen() {
               <Text style={styles.location}>{item.property.location}</Text>
             </View>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.status] + '15' }]}>
-            <Ionicons name={(STATUS_ICONS[item.status] || 'ellipse-outline') as any} size={11} color={STATUS_COLORS[item.status]} />
-            <Text style={[styles.statusText, { color: STATUS_COLORS[item.status] }]}>{item.status}</Text>
+          <View style={{ alignItems: 'flex-end', gap: 4 }}>
+            <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.status] + '15' }]}>
+              <Ionicons name={(STATUS_ICONS[item.status] || 'ellipse-outline') as any} size={11} color={STATUS_COLORS[item.status]} />
+              <Text style={[styles.statusText, { color: STATUS_COLORS[item.status] }]}>{item.status}</Text>
+            </View>
+            {item.property.status === 'SOLD' && (
+              <View style={[styles.statusBadge, { backgroundColor: 'rgba(5,150,105,0.1)' }]}>
+                <Ionicons name="checkmark-circle" size={11} color="#059669" />
+                <Text style={[styles.statusText, { color: '#059669' }]}>SOLD</Text>
+              </View>
+            )}
+            {item.property.status === 'SOLD_OUT' && (
+              <View style={[styles.statusBadge, { backgroundColor: 'rgba(100,116,139,0.1)' }]}>
+                <Ionicons name="lock-closed" size={10} color="#64748b" />
+                <Text style={[styles.statusText, { color: '#64748b' }]}>SOLD OUT</Text>
+              </View>
+            )}
           </View>
         </View>
 
@@ -183,8 +197,12 @@ export default function InvestmentsScreen() {
           </View>
           <View style={styles.statDivider} />
           <View style={styles.stat}>
-            <Text style={[styles.statValue, { color: '#10b981' }]}>{item.property.roi}%</Text>
-            <Text style={styles.statLabel}>ROI</Text>
+            <Text style={[styles.statValue, { color: '#10b981' }]}>
+              {item.property.status === 'SOLD' && item.property.soldPrice && item.property.totalPrice
+                ? ((item.property.soldPrice - item.property.totalPrice) / item.property.totalPrice * 100).toFixed(1)
+                : item.property.roi}%
+            </Text>
+            <Text style={styles.statLabel}>{item.property.status === 'SOLD' ? 'Actual ROI' : 'Exp. ROI'}</Text>
           </View>
         </View>
 
