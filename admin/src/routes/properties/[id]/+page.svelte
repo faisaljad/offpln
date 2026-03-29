@@ -364,6 +364,7 @@
       <div class="card space-y-4">
         <h2 class="text-lg font-semibold text-gray-900">Key Details</h2>
         {#each [
+          ...(p.originalPrice ? [{ label: 'Original Price', value: fmt(p.originalPrice) }] : []),
           { label: 'Total Price',          value: fmt(p.totalPrice) },
           { label: 'Price / Share (10%)',  value: fmt(p.pricePerShare) },
           { label: 'Available Stake',      value: `${p.availableShares * 10}%` },

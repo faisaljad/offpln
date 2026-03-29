@@ -232,7 +232,11 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-4">
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <label class="label" for="originalPrice">Original Price (AED)</label>
+          <input id="originalPrice" name="originalPrice" type="number" class="input" min="0" step="any" value={form?.values?.originalPrice ?? ''} placeholder="Cost price" />
+        </div>
         <div>
           <label class="label" for="totalPrice">Total Price (AED) *</label>
           <input id="totalPrice" name="totalPrice" type="number" class="input" required min="1" value={form?.values?.totalPrice ?? ''} />

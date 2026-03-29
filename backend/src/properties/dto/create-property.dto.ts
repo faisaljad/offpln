@@ -42,6 +42,11 @@ export class CreatePropertyDto {
   @IsString()
   profitType?: string;
 
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  originalPrice?: number;
+
   @IsNumber()
   @IsPositive()
   @Type(() => Number)

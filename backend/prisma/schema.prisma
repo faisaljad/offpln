@@ -76,6 +76,7 @@ model Property {
   latitude        Float?
   longitude       Float?
   developer       String?
+  originalPrice   Float?
   totalPrice      Float
   totalShares     Int
   pricePerShare   Float

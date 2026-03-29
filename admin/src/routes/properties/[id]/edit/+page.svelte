@@ -266,7 +266,11 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-3 gap-4">
+          <div>
+            <label class="label">Original Price (AED)</label>
+            <input name="originalPrice" type="number" class="input" min="0" step="any" value={prop.originalPrice ?? ''} placeholder="Cost price" />
+          </div>
           <div>
             <label class="label">Total Price (AED) *</label>
             <input name="totalPrice" type="number" class="input" required value={prop.totalPrice} />
