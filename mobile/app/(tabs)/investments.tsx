@@ -67,6 +67,7 @@ export default function InvestmentsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'active' | 'sold'>('active');
 
   async function load() {
     setError(null);
@@ -91,6 +92,10 @@ export default function InvestmentsScreen() {
   function formatDate(d: string) {
     return new Date(d).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' });
   }
+
+  const activeInvestments = investments.filter(i => i.property.status !== 'SOLD');
+  const soldInvestments = investments.filter(i => i.property.status === 'SOLD');
+  const filteredInvestments = activeTab === 'active' ? activeInvestments : soldInvestments;
 
   const totalInvested = investments.reduce((sum, inv) => sum + inv.totalAmount, 0);
   const totalPayoutValue = investments.reduce((sum, inv) => sum + (inv.payout?.totalReturn || 0), 0);
@@ -288,7 +293,7 @@ export default function InvestmentsScreen() {
 
   return (
     <FlatList
-      data={investments}
+      data={filteredInvestments}
       keyExtractor={(i) => i.id}
       renderItem={renderItem}
       refreshControl={
@@ -301,7 +306,33 @@ export default function InvestmentsScreen() {
       }
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
-      ListHeaderComponent={investments.length > 0 ? renderHeader : null}
+      ListHeaderComponent={investments.length > 0 ? () => (
+        <>
+          {renderHeader()}
+          <View style={styles.tabsRow}>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'active' && styles.tabActive]}
+              onPress={() => setActiveTab('active')}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.tabText, activeTab === 'active' && styles.tabTextActive]}>Active</Text>
+              <View style={[styles.tabCount, activeTab === 'active' && styles.tabCountActive]}>
+                <Text style={[styles.tabCountText, activeTab === 'active' && styles.tabCountTextActive]}>{activeInvestments.length}</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'sold' && styles.tabActive]}
+              onPress={() => setActiveTab('sold')}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.tabText, activeTab === 'sold' && styles.tabTextActive]}>Sold</Text>
+              <View style={[styles.tabCount, activeTab === 'sold' && styles.tabCountActive]}>
+                <Text style={[styles.tabCountText, activeTab === 'sold' && styles.tabCountTextActive]}>{soldInvestments.length}</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </>
+      ) : null}
       ListEmptyComponent={
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
@@ -428,6 +459,56 @@ const styles = StyleSheet.create({
     height: 28,
     backgroundColor: 'rgba(255,255,255,0.15)',
     marginHorizontal: 12,
+  },
+
+  // Tabs
+  tabsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 4,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 14,
+    backgroundColor: '#f1f5f9',
+  },
+  tabActive: {
+    backgroundColor: '#0284c7',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  tabTextActive: {
+    color: '#fff',
+  },
+  tabCount: {
+    backgroundColor: '#e2e8f0',
+    borderRadius: 10,
+    minWidth: 24,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  tabCountActive: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  tabCountText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748b',
+  },
+  tabCountTextActive: {
+    color: '#fff',
   },
 
   // Investment Card
