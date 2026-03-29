@@ -137,7 +137,14 @@ export default function InvestmentDetailScreen() {
     );
   }
 
-  const statusColor = STATUS_COLORS[investment.status] ?? { bg: '#f3f4f6', text: '#6b7280', gradient: ['#9ca3af', '#6b7280'] };
+  const isSold = investment.property?.status === 'SOLD';
+  const actualRoi = isSold && investment.property?.soldPrice && investment.property?.totalPrice
+    ? ((investment.property.soldPrice - investment.property.totalPrice) / investment.property.totalPrice * 100).toFixed(1)
+    : null;
+  const displayStatus = isSold ? 'SOLD' : investment.status;
+  const statusColor = isSold
+    ? { bg: '#d1fae5', text: '#059669', gradient: ['#059669', '#047857'] as [string, string] }
+    : STATUS_COLORS[investment.status] ?? { bg: '#f3f4f6', text: '#6b7280', gradient: ['#9ca3af', '#6b7280'] as [string, string] };
   const paidCount = investment.payments?.filter((p: any) => p.status === 'PAID').length || 0;
   const totalPayments = investment.payments?.length || 1;
   const progressPct = Math.round((paidCount / totalPayments) * 100);
@@ -151,7 +158,7 @@ export default function InvestmentDetailScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{investment.property?.title}</Text>
         <LinearGradient colors={statusColor.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.statusBadge}>
-          <Text style={styles.statusText}>{investment.status}</Text>
+          <Text style={styles.statusText}>{displayStatus}</Text>
         </LinearGradient>
       </View>
 
@@ -172,8 +179,8 @@ export default function InvestmentDetailScreen() {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{investment.property?.roi}%</Text>
-              <Text style={styles.statLabel}>ROI</Text>
+              <Text style={styles.statValue}>{actualRoi ?? investment.property?.roi}%</Text>
+              <Text style={styles.statLabel}>{isSold ? 'Actual ROI' : 'Exp. ROI'}</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
@@ -276,7 +283,7 @@ export default function InvestmentDetailScreen() {
           <View style={styles.payoutStatsRow}>
             <View style={styles.payoutStatCard}>
               <Text style={styles.payoutProfitVal}>+{formatCurrency(investment.payout.profitAmount)}</Text>
-              <Text style={styles.payoutStatLabel}>Profit ({investment.property?.roi}%)</Text>
+              <Text style={styles.payoutStatLabel}>Profit ({actualRoi ?? investment.property?.roi}%)</Text>
             </View>
             <View style={[styles.payoutStatCard, { backgroundColor: '#f0fdf4' }]}>
               <Text style={styles.payoutTotalVal}>{formatCurrency(investment.payout.totalReturn)}</Text>
