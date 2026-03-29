@@ -7,6 +7,8 @@
   $: payouts = data.payouts ?? [];
   $: transfers = data.transfers ?? [];
 
+  let expandedInv: Record<string, boolean> = {};
+
   function fmt(n: number) {
     return new Intl.NumberFormat('en-AE', { style: 'currency', currency: 'AED', maximumFractionDigits: 0 }).format(n);
   }
@@ -240,9 +242,15 @@
           <tbody>
             {#each investments as inv}
               {@const paidAmount = (inv.payments ?? []).filter((p) => p.status === 'PAID').reduce((s, p) => s + p.amount, 0)}
-              <tr class="border-b border-gray-50 hover:bg-blue-50/30 transition-colors">
+              {@const paidCount = (inv.payments ?? []).filter((p) => p.status === 'PAID').length}
+              {@const totalCount = (inv.payments ?? []).length}
+              <tr
+                class="border-b border-gray-50 hover:bg-blue-50/30 transition-colors cursor-pointer"
+                onclick={() => expandedInv[inv.id] = !expandedInv[inv.id]}
+              >
                 <td class="py-3 px-4">
                   <div class="flex items-center gap-3">
+                    <button class="text-gray-400 transition-transform {expandedInv[inv.id] ? 'rotate-90' : ''}">▸</button>
                     {#if inv.property?.images?.[0]}
                       <img src={inv.property.images[0]} alt="" class="w-10 h-10 rounded-lg object-cover" />
                     {/if}
@@ -258,15 +266,68 @@
                   <span class="font-medium {paidAmount >= inv.totalAmount ? 'text-emerald-600' : 'text-amber-600'}">
                     {fmt(paidAmount)}
                   </span>
+                  <span class="text-xs text-gray-400 ml-1">({paidCount}/{totalCount})</span>
                 </td>
                 <td class="py-3 px-4">
                   <span class={statusColor[inv.status] ?? 'badge-pending'}>{inv.status}</span>
                 </td>
                 <td class="py-3 px-4 text-gray-500 text-xs">{fmtDate(inv.createdAt)}</td>
                 <td class="py-3 px-4">
-                  <a href="/investments/{inv.id}" class="text-primary-600 hover:underline text-xs">View</a>
+                  <a href="/investments/{inv.id}" class="text-primary-600 hover:underline text-xs" onclick={(e) => e.stopPropagation()}>View</a>
                 </td>
               </tr>
+              {#if expandedInv[inv.id] && (inv.payments ?? []).length > 0}
+                <tr>
+                  <td colspan="7" class="px-4 pb-4 pt-0">
+                    <div class="ml-8 bg-gray-50 rounded-xl overflow-hidden border border-gray-100">
+                      <table class="w-full text-xs">
+                        <thead>
+                          <tr class="bg-gray-100/60">
+                            <th class="text-left py-2 px-3 text-gray-500 font-medium">Payment</th>
+                            <th class="text-left py-2 px-3 text-gray-500 font-medium">Amount</th>
+                            <th class="text-left py-2 px-3 text-gray-500 font-medium">Due Date</th>
+                            <th class="text-left py-2 px-3 text-gray-500 font-medium">Status</th>
+                            <th class="text-left py-2 px-3 text-gray-500 font-medium">Paid At</th>
+                            <th class="text-left py-2 px-3 text-gray-500 font-medium">Proof</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {#each inv.payments as payment}
+                            <tr class="border-t border-gray-100/80 hover:bg-white/60">
+                              <td class="py-2 px-3 font-medium text-gray-700">{payment.name}</td>
+                              <td class="py-2 px-3 text-gray-700">{fmt(payment.amount)}</td>
+                              <td class="py-2 px-3 text-gray-500">{payment.dueDate ? fmtDate(payment.dueDate) : '—'}</td>
+                              <td class="py-2 px-3">
+                                {#if payment.status === 'PAID'}
+                                  <span class="text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full">PAID</span>
+                                {:else if payment.status === 'OVERDUE'}
+                                  <span class="text-red-600 font-semibold bg-red-50 px-2 py-0.5 rounded-full">OVERDUE</span>
+                                {:else if payment.status === 'UNDER_REVIEW'}
+                                  <span class="text-blue-600 font-semibold bg-blue-50 px-2 py-0.5 rounded-full">REVIEW</span>
+                                {:else}
+                                  <span class="text-amber-600 font-semibold bg-amber-50 px-2 py-0.5 rounded-full">PENDING</span>
+                                {/if}
+                              </td>
+                              <td class="py-2 px-3 text-gray-500">{payment.paidAt ? fmtDate(payment.paidAt) : '—'}</td>
+                              <td class="py-2 px-3">
+                                {#if payment.investorProofUrl}
+                                  <a href={payment.investorProofUrl} target="_blank" class="text-primary-600 hover:underline">Inv</a>
+                                {/if}
+                                {#if payment.proofUrl}
+                                  <a href={payment.proofUrl} target="_blank" class="text-primary-600 hover:underline ml-1">Adm</a>
+                                {/if}
+                                {#if !payment.investorProofUrl && !payment.proofUrl}
+                                  <span class="text-gray-300">—</span>
+                                {/if}
+                              </td>
+                            </tr>
+                          {/each}
+                        </tbody>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+              {/if}
             {/each}
           </tbody>
         </table>
