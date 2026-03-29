@@ -17,6 +17,16 @@
   $: p = data.property;
   $: soldPct = ((p.totalShares - p.availableShares) / p.totalShares) * 100;
 
+  // Payment plan tabs
+  $: paymentPlanNames = [
+    ...(p.paymentPlan?.downPayment ? ['Down Payment'] : []),
+    ...(p.paymentPlan?.installments ?? []).map((inst: any) => inst.name),
+  ];
+  let selectedPlanTab = '';
+  $: if (paymentPlanNames.length > 0 && !paymentPlanNames.includes(selectedPlanTab)) {
+    selectedPlanTab = paymentPlanNames[0];
+  }
+
   // Modals
   let showSoldModal   = false;
   let sellingPrice    = String(Math.round(data.property.totalPrice));
@@ -137,26 +147,96 @@
         <div class="text-gray-600 leading-relaxed prose prose-sm max-w-none">{@html p.description}</div>
       </div>
 
-      <!-- Payment Plan -->
+      <!-- Payment Plan with Investor Status -->
       <div class="card">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment Plan</h2>
-        <div class="space-y-2">
-          <div class="flex justify-between items-center py-2 border-b border-gray-100">
-            <span class="text-gray-700 font-medium">Down Payment</span>
-            <span class="font-bold text-blue-600">{p.paymentPlan.downPayment}%</span>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment Schedule</h2>
+
+        {#if paymentPlanNames.length > 0}
+          <!-- Tabs -->
+          <div class="flex flex-wrap gap-2 mb-4 border-b border-gray-100 pb-3">
+            {#each paymentPlanNames as planName, i}
+              <button
+                type="button"
+                onclick={() => selectedPlanTab = planName}
+                class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors {selectedPlanTab === planName ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+              >
+                {planName}
+              </button>
+            {/each}
           </div>
-          {#each (p.paymentPlan.installments ?? []) as inst}
-            <div class="flex justify-between items-center py-2 border-b border-gray-50">
-              <div>
-                <span class="text-gray-700">{inst.name}</span>
-                <span class="ml-2 text-xs text-gray-400">
-                  {inst.dueType === 'date' ? inst.dueValue : `on ${inst.dueValue}`}
-                </span>
-              </div>
-              <span class="font-semibold text-blue-600">{inst.percentage}%</span>
+
+          <!-- Investor payments for selected tab -->
+          {#if data.investments.length === 0}
+            <p class="text-gray-400 text-sm py-6 text-center">No investors yet</p>
+          {:else}
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-gray-100">
+                    <th class="text-left py-2 px-3 text-gray-500 font-medium">Investor</th>
+                    <th class="text-left py-2 px-3 text-gray-500 font-medium">Amount</th>
+                    <th class="text-left py-2 px-3 text-gray-500 font-medium">Due Date</th>
+                    <th class="text-left py-2 px-3 text-gray-500 font-medium">Status</th>
+                    <th class="text-left py-2 px-3 text-gray-500 font-medium">Paid At</th>
+                    <th class="text-left py-2 px-3 text-gray-500 font-medium">Proof</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {#each data.investments as inv}
+                    {@const payment = inv.payments?.find((pay) => pay.name === selectedPlanTab)}
+                    {#if payment}
+                      <tr class="border-b border-gray-50 hover:bg-gray-50">
+                        <td class="py-2 px-3">
+                          <div class="font-medium text-gray-900">{inv.user.name}</div>
+                          <div class="text-gray-400 text-xs">{inv.user.email}</div>
+                        </td>
+                        <td class="py-2 px-3 font-medium">{fmt(payment.amount)}</td>
+                        <td class="py-2 px-3 text-gray-500 text-xs">
+                          {payment.dueDate ? fmtDate(payment.dueDate) : '—'}
+                        </td>
+                        <td class="py-2 px-3">
+                          <span class="{payment.status === 'PAID' ? 'badge-approved' : payment.status === 'OVERDUE' ? 'badge-rejected' : payment.status === 'UNDER_REVIEW' ? 'badge-active' : 'badge-pending'}">
+                            {payment.status}
+                          </span>
+                        </td>
+                        <td class="py-2 px-3 text-gray-500 text-xs">
+                          {payment.paidAt ? fmtDate(payment.paidAt) : '—'}
+                        </td>
+                        <td class="py-2 px-3">
+                          {#if payment.investorProofUrl}
+                            <a href={payment.investorProofUrl} target="_blank" class="text-primary-600 hover:underline text-xs">Investor</a>
+                          {/if}
+                          {#if payment.proofUrl}
+                            <a href={payment.proofUrl} target="_blank" class="text-primary-600 hover:underline text-xs ml-1">Admin</a>
+                          {/if}
+                          {#if !payment.investorProofUrl && !payment.proofUrl}
+                            <span class="text-gray-300 text-xs">—</span>
+                          {/if}
+                        </td>
+                      </tr>
+                    {/if}
+                  {/each}
+                </tbody>
+              </table>
             </div>
-          {/each}
-        </div>
+
+            <!-- Summary -->
+            {@const tabPayments = data.investments.map((inv) => inv.payments?.find((pay) => pay.name === selectedPlanTab)).filter(Boolean)}
+            <div class="flex gap-4 mt-4 pt-3 border-t border-gray-100 text-sm">
+              <span class="text-gray-500">
+                Paid: <strong class="text-emerald-600">{tabPayments.filter((p) => p.status === 'PAID').length}/{tabPayments.length}</strong>
+              </span>
+              <span class="text-gray-500">
+                Collected: <strong class="text-gray-900">{fmt(tabPayments.filter((p) => p.status === 'PAID').reduce((s, p) => s + p.amount, 0))}</strong>
+              </span>
+              <span class="text-gray-500">
+                Pending: <strong class="text-amber-600">{fmt(tabPayments.filter((p) => p.status !== 'PAID').reduce((s, p) => s + p.amount, 0))}</strong>
+              </span>
+            </div>
+          {/if}
+        {:else}
+          <p class="text-gray-400 text-sm py-4 text-center">No payment plan configured</p>
+        {/if}
       </div>
 
       <!-- Investors -->
