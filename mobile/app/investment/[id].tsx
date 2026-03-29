@@ -53,7 +53,8 @@ export default function InvestmentDetailScreen() {
     api.getInvestment(id as string)
       .then((res: any) => {
         setInvestment(res);
-        setAskPrice(String(Math.round(res.totalAmount)));
+        const paid = (res.payments ?? []).filter((p: any) => p.status === 'PAID').reduce((s: number, p: any) => s + p.amount, 0);
+        setAskPrice(String(Math.round(paid || res.totalAmount)));
       })
       .catch((err: any) => setError(err?.message || 'Failed to load investment'))
       .finally(() => setLoading(false));
@@ -567,7 +568,9 @@ export default function InvestmentDetailScreen() {
               placeholder="Enter your asking price"
               placeholderTextColor="#9ca3af"
             />
-            <Text style={styles.fieldHint}>Original investment: {formatCurrency(investment.totalAmount)}</Text>
+            <Text style={styles.fieldHint}>Total paid: {formatCurrency(
+              (investment.payments ?? []).filter((p: any) => p.status === 'PAID').reduce((s: number, p: any) => s + p.amount, 0)
+            )}</Text>
 
             <Text style={[styles.fieldLabel, { marginTop: 20 }]}>Notes (optional)</Text>
             <TextInput
