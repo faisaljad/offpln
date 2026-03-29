@@ -183,7 +183,7 @@
                 </thead>
                 <tbody>
                   {#each data.investments as inv}
-                    {@const payment = inv.payments?.find((pay) => pay.name === selectedPlanTab)}
+                    {@const payment = (inv.payments ?? []).find((pay) => pay.name === selectedPlanTab)}
                     {#if payment}
                       <tr class="border-b border-gray-50 hover:bg-gray-50">
                         <td class="py-2 px-3">
@@ -195,9 +195,15 @@
                           {payment.dueDate ? fmtDate(payment.dueDate) : '—'}
                         </td>
                         <td class="py-2 px-3">
-                          <span class="{payment.status === 'PAID' ? 'badge-approved' : payment.status === 'OVERDUE' ? 'badge-rejected' : payment.status === 'UNDER_REVIEW' ? 'badge-active' : 'badge-pending'}">
-                            {payment.status}
-                          </span>
+                          {#if payment.status === 'PAID'}
+                            <span class="badge-approved">{payment.status}</span>
+                          {:else if payment.status === 'OVERDUE'}
+                            <span class="badge-rejected">{payment.status}</span>
+                          {:else if payment.status === 'UNDER_REVIEW'}
+                            <span class="badge-active">{payment.status}</span>
+                          {:else}
+                            <span class="badge-pending">{payment.status}</span>
+                          {/if}
                         </td>
                         <td class="py-2 px-3 text-gray-500 text-xs">
                           {payment.paidAt ? fmtDate(payment.paidAt) : '—'}
@@ -221,18 +227,20 @@
             </div>
 
             <!-- Summary -->
-            {@const tabPayments = data.investments.map((inv) => inv.payments?.find((pay) => pay.name === selectedPlanTab)).filter(Boolean)}
-            <div class="flex gap-4 mt-4 pt-3 border-t border-gray-100 text-sm">
-              <span class="text-gray-500">
-                Paid: <strong class="text-emerald-600">{tabPayments.filter((p) => p.status === 'PAID').length}/{tabPayments.length}</strong>
-              </span>
-              <span class="text-gray-500">
-                Collected: <strong class="text-gray-900">{fmt(tabPayments.filter((p) => p.status === 'PAID').reduce((s, p) => s + p.amount, 0))}</strong>
-              </span>
-              <span class="text-gray-500">
-                Pending: <strong class="text-amber-600">{fmt(tabPayments.filter((p) => p.status !== 'PAID').reduce((s, p) => s + p.amount, 0))}</strong>
-              </span>
-            </div>
+            {#if data.investments.length > 0}
+              {@const tabPayments = data.investments.map((inv) => (inv.payments ?? []).find((pay) => pay.name === selectedPlanTab)).filter((x) => !!x)}
+              <div class="flex gap-4 mt-4 pt-3 border-t border-gray-100 text-sm">
+                <span class="text-gray-500">
+                  Paid: <strong class="text-emerald-600">{tabPayments.filter((p) => p.status === 'PAID').length}/{tabPayments.length}</strong>
+                </span>
+                <span class="text-gray-500">
+                  Collected: <strong class="text-gray-900">{fmt(tabPayments.filter((p) => p.status === 'PAID').reduce((s, p) => s + (p.amount ?? 0), 0))}</strong>
+                </span>
+                <span class="text-gray-500">
+                  Pending: <strong class="text-amber-600">{fmt(tabPayments.filter((p) => p.status !== 'PAID').reduce((s, p) => s + (p.amount ?? 0), 0))}</strong>
+                </span>
+              </div>
+            {/if}
           {/if}
         {:else}
           <p class="text-gray-400 text-sm py-4 text-center">No payment plan configured</p>
