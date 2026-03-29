@@ -76,7 +76,7 @@ model Property {
   latitude        Float?
   longitude       Float?
   developer       String?
-  originalPrice   Float?
+  originalPrice   Float    @default(0)
   totalPrice      Float
   totalShares     Int
   pricePerShare   Float
@@ -87,7 +87,8 @@ model Property {
   images          String[]
   paymentPlan     Json
   status          PropertyStatus @default(ACTIVE)
-  soldPrice       Float?
+  soldPrice              Float?
+  originalSellingPrice   Float?
   area            Float?
   handoverDate    String?
   propertyTypeId  String?

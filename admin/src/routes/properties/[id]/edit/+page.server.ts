@@ -10,7 +10,7 @@ const PropertySchema = z.object({
   location: z.string().min(2),
   developer: z.string().optional(),
   developerLogo: z.string().optional(),
-  originalPrice: z.coerce.number().optional(),
+  originalPrice: z.coerce.number().positive(),
   totalPrice: z.coerce.number().positive(),
   totalShares: z.coerce.number().int().positive(),
   roi: z.coerce.number().min(0),

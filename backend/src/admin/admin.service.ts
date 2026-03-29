@@ -110,7 +110,7 @@ export class AdminService {
     };
   }
 
-  async setSold(propertyId: string, sellingPrice: number) {
+  async setSold(propertyId: string, sellingPrice: number, originalSellingPrice?: number) {
     const property = await this.prisma.property.findUnique({ where: { id: propertyId } });
     if (!property) throw new NotFoundException('Property not found');
     if (property.status === 'SOLD') throw new BadRequestException('Property is already marked as sold');
@@ -126,7 +126,7 @@ export class AdminService {
     await this.prisma.$transaction(async (tx) => {
       await tx.property.update({
         where: { id: propertyId },
-        data: { status: 'SOLD', soldPrice: sellingPrice },
+        data: { status: 'SOLD', soldPrice: sellingPrice, ...(originalSellingPrice ? { originalSellingPrice } : {}) },
       });
 
       for (const inv of investments) {

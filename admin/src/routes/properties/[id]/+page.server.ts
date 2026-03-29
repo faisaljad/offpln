@@ -33,11 +33,12 @@ export const actions: Actions = {
     const token = cookies.get('admin_token');
     const fd = await request.formData();
     const sellingPrice = parseFloat(fd.get('sellingPrice') as string);
+    const originalSellingPrice = parseFloat(fd.get('originalSellingPrice') as string) || undefined;
     if (!sellingPrice || sellingPrice <= 0) {
       return fail(400, { error: 'Please enter a valid selling price' });
     }
     try {
-      await adminFetch(`/admin/properties/${params.id}/sold`, token!, 'PUT', { sellingPrice });
+      await adminFetch(`/admin/properties/${params.id}/sold`, token!, 'PUT', { sellingPrice, originalSellingPrice });
     } catch (err: any) {
       return fail(400, { error: err.message || 'Failed to mark as sold' });
     }

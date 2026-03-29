@@ -109,8 +109,8 @@ export class AdminController {
   }
 
   @Put('properties/:id/sold')
-  setPropertySold(@Param('id') id: string, @Body('sellingPrice') sellingPrice: number) {
-    return this.adminService.setSold(id, Number(sellingPrice));
+  setPropertySold(@Param('id') id: string, @Body('sellingPrice') sellingPrice: number, @Body('originalSellingPrice') originalSellingPrice?: number) {
+    return this.adminService.setSold(id, Number(sellingPrice), originalSellingPrice ? Number(originalSellingPrice) : undefined);
   }
 
   @Get('payouts/stats')

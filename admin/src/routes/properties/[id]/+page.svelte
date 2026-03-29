@@ -30,6 +30,7 @@
   // Modals
   let showSoldModal   = false;
   let sellingPrice    = String(Math.round(data.property.totalPrice));
+  let originalSellingPrice = '';
 
   let showPayoutModal = false;
   let selectedPayout: any = null;
@@ -374,6 +375,7 @@
           { label: 'Location',             value: p.location },
           { label: 'Listed',               value: fmtDate(p.createdAt) },
           ...(p.soldPrice ? [{ label: 'Sold For', value: fmt(p.soldPrice) }] : []),
+          ...(p.originalSellingPrice ? [{ label: 'Original Selling Price', value: fmt(p.originalSellingPrice) }] : []),
         ] as row}
           <div class="flex justify-between text-sm border-b border-gray-50 pb-3">
             <span class="text-gray-500">{row.label}</span>
@@ -437,6 +439,24 @@
               ({(((Number(sellingPrice) - p.totalPrice) / p.totalPrice) * 100).toFixed(1)}% return)
             </p>
           {/if}
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2" for="originalSellingPrice">
+            Original Selling Price (AED) <span class="text-red-500">*</span>
+            <span class="text-xs text-gray-400 font-normal ml-1">Admin only — not shown to investors</span>
+          </label>
+          <input
+            id="originalSellingPrice"
+            type="number"
+            name="originalSellingPrice"
+            bind:value={originalSellingPrice}
+            min="1"
+            step="any"
+            required
+            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-200"
+            placeholder="Actual selling price before fees"
+          />
         </div>
 
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">

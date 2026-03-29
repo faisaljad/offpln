@@ -20,7 +20,7 @@ export class PropertiesController {
   @Get(':id')
   async findOne(@Param('id') id: string) {
     const property = await this.propertiesService.findOne(id);
-    const { originalPrice, ...rest } = property as any;
+    const { originalPrice, originalSellingPrice, ...rest } = property as any;
     return rest;
   }
 
