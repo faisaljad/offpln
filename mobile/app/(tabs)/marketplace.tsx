@@ -109,23 +109,49 @@ export default function MarketplaceScreen() {
 
         <View style={styles.cardBody}>
 
-          <View style={styles.statsRow}>
-            <View style={styles.statPill}>
-              <Ionicons name="pie-chart-outline" size={12} color="#0284c7" />
-              <Text style={styles.statPillValue}>{item.investment?.sharesPurchased * 10}%</Text>
-              <Text style={styles.statPillLabel}>Stake</Text>
-            </View>
-            <View style={styles.statPill}>
-              <Ionicons name="trending-up-outline" size={12} color="#059669" />
-              <Text style={[styles.statPillValue, { color: '#059669' }]}>{prop?.roi}%</Text>
-              <Text style={styles.statPillLabel}>ROI</Text>
-            </View>
-            <View style={styles.statPill}>
-              <Ionicons name="cash-outline" size={12} color="#f59e0b" />
-              <Text style={[styles.statPillValue, { color: '#b45309' }]}>{formatCurrency(item.askPrice)}</Text>
-              <Text style={styles.statPillLabel}>Price</Text>
-            </View>
-          </View>
+          {(() => {
+            const payments = item.investment?.payments ?? [];
+            const paid = payments.filter((p: any) => p.status === 'PAID').reduce((s: number, p: any) => s + p.amount, 0);
+            const unpaid = payments.filter((p: any) => p.status !== 'PAID').reduce((s: number, p: any) => s + p.amount, 0);
+            const totalInv = paid + unpaid;
+            return (
+              <>
+                <View style={styles.statsRow}>
+                  <View style={styles.statPill}>
+                    <Ionicons name="pie-chart-outline" size={12} color="#0284c7" />
+                    <Text style={styles.statPillValue}>{item.investment?.sharesPurchased * 10}%</Text>
+                    <Text style={styles.statPillLabel}>Stake</Text>
+                  </View>
+                  <View style={styles.statPill}>
+                    <Ionicons name="trending-up-outline" size={12} color="#059669" />
+                    <Text style={[styles.statPillValue, { color: '#059669' }]}>{prop?.roi}%</Text>
+                    <Text style={styles.statPillLabel}>ROI</Text>
+                  </View>
+                  <View style={styles.statPill}>
+                    <Ionicons name="cash-outline" size={12} color="#f59e0b" />
+                    <Text style={[styles.statPillValue, { color: '#b45309' }]}>{formatCurrency(item.askPrice)}</Text>
+                    <Text style={styles.statPillLabel}>Ask Price</Text>
+                  </View>
+                </View>
+                <View style={styles.paymentSummary}>
+                  <View style={styles.paymentSummaryItem}>
+                    <Text style={styles.paymentSummaryLabel}>Paid</Text>
+                    <Text style={[styles.paymentSummaryValue, { color: '#059669' }]}>{formatCurrency(paid)}</Text>
+                  </View>
+                  <View style={styles.paymentSummaryDivider} />
+                  <View style={styles.paymentSummaryItem}>
+                    <Text style={styles.paymentSummaryLabel}>Unpaid</Text>
+                    <Text style={[styles.paymentSummaryValue, { color: '#dc2626' }]}>{formatCurrency(unpaid)}</Text>
+                  </View>
+                  <View style={styles.paymentSummaryDivider} />
+                  <View style={styles.paymentSummaryItem}>
+                    <Text style={styles.paymentSummaryLabel}>Total</Text>
+                    <Text style={styles.paymentSummaryValue}>{formatCurrency(totalInv)}</Text>
+                  </View>
+                </View>
+              </>
+            );
+          })()}
 
           <View style={styles.sellerRow}>
             <View style={styles.sellerAvatar}>
@@ -405,6 +431,34 @@ const styles = StyleSheet.create({
   statPillLabel: { fontSize: 10, color: '#94a3b8', fontWeight: '500' },
 
   // Seller
+  paymentSummary: {
+    flexDirection: 'row',
+    backgroundColor: '#f8fafc',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 14,
+    alignItems: 'center',
+  },
+  paymentSummaryItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  paymentSummaryLabel: {
+    fontSize: 10,
+    color: '#94a3b8',
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  paymentSummaryValue: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  paymentSummaryDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#e2e8f0',
+  },
   sellerRow: {
     flexDirection: 'row',
     alignItems: 'center',
