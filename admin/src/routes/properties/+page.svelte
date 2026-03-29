@@ -8,14 +8,34 @@
   export let data: PageData;
 
   let search = data.search || '';
+  let status = data.status || '';
+  let sold = data.sold || '';
+  let minPricePerShare = data.minPricePerShare || '';
+  let maxPricePerShare = data.maxPricePerShare || '';
   let deleteId = '';
   let showConfirm = false;
+  let showFilters = false;
+
+  $: hasFilters = !!(status || sold || minPricePerShare || maxPricePerShare);
+
+  function applyFilters() {
+    const params = new URLSearchParams();
+    params.set('page', '1');
+    if (search) params.set('search', search);
+    if (status) params.set('status', status);
+    if (sold) params.set('sold', sold);
+    if (minPricePerShare) params.set('minPricePerShare', minPricePerShare);
+    if (maxPricePerShare) params.set('maxPricePerShare', maxPricePerShare);
+    goto(`?${params}`);
+  }
+
+  function clearFilters() {
+    search = ''; status = ''; sold = ''; minPricePerShare = ''; maxPricePerShare = '';
+    goto('?page=1');
+  }
 
   function onSearch() {
-    const params = new URLSearchParams($page.url.searchParams);
-    params.set('search', search);
-    params.set('page', '1');
-    goto(`?${params}`);
+    applyFilters();
   }
 
   function confirmDelete(id: string) {
@@ -45,21 +65,63 @@
   </div>
 
   <div class="card">
-    <div class="flex gap-3 mb-6">
+    <div class="flex gap-3 mb-4">
       <input
         type="search"
-        placeholder="Search properties..."
+        placeholder="Search by title, ref, location..."
         bind:value={search}
         onkeydown={(e) => e.key === 'Enter' && onSearch()}
-        class="input max-w-xs"
+        class="input max-w-sm"
       />
       <button onclick={onSearch} class="btn-secondary">Search</button>
+      <button
+        onclick={() => showFilters = !showFilters}
+        class="px-4 py-2 rounded-lg text-sm font-medium transition-colors {hasFilters ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
+      >
+        🔍 Filters {hasFilters ? '●' : ''}
+      </button>
+      {#if hasFilters}
+        <button onclick={clearFilters} class="text-sm text-red-500 hover:underline font-medium">Clear</button>
+      {/if}
     </div>
+
+    {#if showFilters}
+      <div class="bg-gray-50 rounded-xl p-4 mb-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Status</label>
+          <select bind:value={status} onchange={applyFilters} class="input w-full text-sm">
+            <option value="">All</option>
+            <option value="ACTIVE">Active</option>
+            <option value="SOLD_OUT">Sold Out</option>
+            <option value="COMING_SOON">Coming Soon</option>
+            <option value="ARCHIVED">Archived</option>
+            <option value="SOLD">Sold</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Sold</label>
+          <select bind:value={sold} onchange={applyFilters} class="input w-full text-sm">
+            <option value="">All</option>
+            <option value="false">Not Sold</option>
+            <option value="true">Sold Only</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Min Price/Share</label>
+          <input type="number" bind:value={minPricePerShare} onchange={applyFilters} class="input w-full text-sm" placeholder="Min" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Max Price/Share</label>
+          <input type="number" bind:value={maxPricePerShare} onchange={applyFilters} class="input w-full text-sm" placeholder="Max" />
+        </div>
+      </div>
+    {/if}
 
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
         <thead>
           <tr class="border-b border-gray-100">
+            <th class="text-left py-3 px-4 text-gray-500 font-medium">Ref</th>
             <th class="text-left py-3 px-4 text-gray-500 font-medium">Property</th>
             <th class="text-left py-3 px-4 text-gray-500 font-medium">Location</th>
             <th class="text-left py-3 px-4 text-gray-500 font-medium">Price/Share</th>
@@ -72,6 +134,7 @@
         <tbody>
           {#each data.properties as prop}
             <tr class="border-b border-gray-50 hover:bg-gray-50">
+              <td class="py-3 px-4 text-xs font-mono text-gray-400">{prop.refNumber ?? '—'}</td>
               <td class="py-3 px-4">
                 <div class="flex items-center gap-3">
                   {#if prop.images?.[0]}
@@ -102,7 +165,7 @@
             </tr>
           {:else}
             <tr>
-              <td colspan="7" class="py-12 text-center text-gray-400">No properties found</td>
+              <td colspan="8" class="py-12 text-center text-gray-400">No properties found</td>
             </tr>
           {/each}
         </tbody>
@@ -113,7 +176,7 @@
       <div class="flex justify-center gap-2 mt-6">
         {#each Array(data.pages) as _, i}
           <a
-            href="?page={i + 1}{search ? `&search=${search}` : ''}"
+            href="?page={i + 1}{search ? `&search=${search}` : ''}{status ? `&status=${status}` : ''}{sold ? `&sold=${sold}` : ''}{minPricePerShare ? `&minPricePerShare=${minPricePerShare}` : ''}{maxPricePerShare ? `&maxPricePerShare=${maxPricePerShare}` : ''}"
             class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
             class:bg-primary-600={data.page === i + 1}
             class:text-white={data.page === i + 1}

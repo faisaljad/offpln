@@ -9,11 +9,20 @@ export const load: PageServerLoad = async ({ cookies, url }) => {
   return guardedLoad(async () => {
     const page = url.searchParams.get('page') || '1';
     const search = url.searchParams.get('search') || '';
-    const data = await apiFetch(
-      `/admin/properties?page=${page}&limit=10${search ? `&search=${search}` : ''}`,
-      { token },
-    );
-    return { ...data, search };
+    const status = url.searchParams.get('status') || '';
+    const sold = url.searchParams.get('sold') || '';
+    const minPricePerShare = url.searchParams.get('minPricePerShare') || '';
+    const maxPricePerShare = url.searchParams.get('maxPricePerShare') || '';
+
+    let qs = `page=${page}&limit=10&includeAll=true`;
+    if (search) qs += `&search=${search}`;
+    if (status) qs += `&status=${status}`;
+    if (sold) qs += `&sold=${sold}`;
+    if (minPricePerShare) qs += `&minPricePerShare=${minPricePerShare}`;
+    if (maxPricePerShare) qs += `&maxPricePerShare=${maxPricePerShare}`;
+
+    const data = await apiFetch(`/admin/properties?${qs}`, { token });
+    return { ...data, search, status, sold, minPricePerShare, maxPricePerShare };
   });
 };
 
