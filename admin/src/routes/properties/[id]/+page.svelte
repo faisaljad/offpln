@@ -79,6 +79,42 @@
     </div>
   </div>
 
+  {#if p.status === 'SOLD' && p.soldPrice}
+    <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center">
+          <span class="text-lg">✓</span>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-emerald-800">Property Sold</h2>
+          <p class="text-sm text-emerald-600">This property has been sold and ROI payouts have been created.</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg p-4 text-center">
+          <p class="text-xs text-gray-500 mb-1">Original Price</p>
+          <p class="text-lg font-bold text-gray-900">{fmt(p.totalPrice)}</p>
+        </div>
+        <div class="bg-white rounded-lg p-4 text-center">
+          <p class="text-xs text-gray-500 mb-1">Sold For</p>
+          <p class="text-lg font-bold text-emerald-700">{fmt(p.soldPrice)}</p>
+        </div>
+        <div class="bg-white rounded-lg p-4 text-center">
+          <p class="text-xs text-gray-500 mb-1">Gain</p>
+          <p class="text-lg font-bold {p.soldPrice >= p.totalPrice ? 'text-emerald-700' : 'text-red-600'}">
+            {fmt(p.soldPrice - p.totalPrice)}
+          </p>
+        </div>
+        <div class="bg-white rounded-lg p-4 text-center">
+          <p class="text-xs text-gray-500 mb-1">Profit Rate</p>
+          <p class="text-lg font-bold {p.soldPrice >= p.totalPrice ? 'text-emerald-700' : 'text-red-600'}">
+            {(((p.soldPrice - p.totalPrice) / p.totalPrice) * 100).toFixed(1)}%
+          </p>
+        </div>
+      </div>
+    </div>
+  {/if}
+
   <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
     <!-- Left col -->
     <div class="xl:col-span-2 space-y-6">
