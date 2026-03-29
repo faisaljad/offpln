@@ -41,4 +41,24 @@ export class QueryPropertyDto {
   @IsOptional()
   @IsString()
   status?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  minPricePerShare?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  maxPricePerShare?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  minAvailableShares?: number;
+
+  @IsOptional()
+  @IsString()
+  propertyTypeId?: string;
+
+  @IsOptional()
+  @IsString()
+  sold?: string;
 }

@@ -11,6 +11,7 @@ import {
   Modal,
   Pressable,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { useState, useEffect, useCallback } from 'react';
 import { router } from 'expo-router';
@@ -43,6 +44,11 @@ export default function PropertiesScreen() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [minPricePerShare, setMinPricePerShare] = useState('');
+  const [maxPricePerShare, setMaxPricePerShare] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [soldFilter, setSoldFilter] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
@@ -57,6 +63,10 @@ export default function PropertiesScreen() {
       if (search) params.search = search;
       if (emirate !== 'All Emirates') params.location = emirate;
       if (inStockOnly) params.status = 'ACTIVE';
+      if (minPricePerShare) params.minPricePerShare = minPricePerShare;
+      if (maxPricePerShare) params.maxPricePerShare = maxPricePerShare;
+      if (statusFilter) params.status = statusFilter;
+      if (soldFilter) params.sold = soldFilter;
 
       const res: any = await api.getProperties(params);
       const newItems = res.properties || [];
@@ -88,7 +98,7 @@ export default function PropertiesScreen() {
     setHasMore(true);
     setLoading(true);
     loadProperties(true);
-  }, [search, emirate, inStockOnly]);
+  }, [search, emirate, inStockOnly, minPricePerShare, maxPricePerShare, statusFilter, soldFilter]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -332,6 +342,16 @@ export default function PropertiesScreen() {
             Available
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.filterPill, (minPricePerShare || maxPricePerShare || statusFilter || soldFilter) ? styles.filterPillActive : null]}
+          onPress={() => setShowAdvanced(true)}
+        >
+          <Ionicons name="options-outline" size={14} color={(minPricePerShare || maxPricePerShare || statusFilter || soldFilter) ? '#0284c7' : '#64748b'} />
+          <Text style={[styles.filterPillText, (minPricePerShare || maxPricePerShare || statusFilter || soldFilter) && styles.filterPillTextActive]}>
+            Filters
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <FlatList
@@ -414,6 +434,105 @@ export default function PropertiesScreen() {
                 </View>
               </TouchableOpacity>
             ))}
+          </View>
+        </Pressable>
+      </Modal>
+
+      {/* Advanced filters modal */}
+      <Modal visible={showAdvanced} transparent animationType="slide" onRequestClose={() => setShowAdvanced(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setShowAdvanced(false)}>
+          <View style={styles.advancedSheet} onStartShouldSetResponder={() => true}>
+            <View style={styles.dropdownHandle} />
+            <View style={styles.dropdownHeader}>
+              <Text style={styles.dropdownTitle}>Advanced Filters</Text>
+              <TouchableOpacity style={styles.dropdownClose} onPress={() => setShowAdvanced(false)}>
+                <Ionicons name="close" size={20} color="#64748b" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+              {/* Price per share range */}
+              <Text style={styles.advFilterLabel}>Price per Share (AED)</Text>
+              <View style={styles.advFilterRow}>
+                <TextInput
+                  style={styles.advFilterInput}
+                  value={minPricePerShare}
+                  onChangeText={setMinPricePerShare}
+                  placeholder="Min"
+                  placeholderTextColor="#94a3b8"
+                  keyboardType="number-pad"
+                />
+                <Text style={styles.advFilterDash}>—</Text>
+                <TextInput
+                  style={styles.advFilterInput}
+                  value={maxPricePerShare}
+                  onChangeText={setMaxPricePerShare}
+                  placeholder="Max"
+                  placeholderTextColor="#94a3b8"
+                  keyboardType="number-pad"
+                />
+              </View>
+
+              {/* Status filter */}
+              <Text style={styles.advFilterLabel}>Status</Text>
+              <View style={styles.advFilterChips}>
+                {[
+                  { value: '', label: 'All' },
+                  { value: 'ACTIVE', label: 'Active' },
+                  { value: 'SOLD_OUT', label: 'Sold Out' },
+                  { value: 'COMING_SOON', label: 'Coming Soon' },
+                ].map((s) => (
+                  <TouchableOpacity
+                    key={s.value}
+                    style={[styles.advFilterChip, statusFilter === s.value && styles.advFilterChipActive]}
+                    onPress={() => setStatusFilter(s.value)}
+                  >
+                    <Text style={[styles.advFilterChipText, statusFilter === s.value && styles.advFilterChipTextActive]}>{s.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Sold filter */}
+              <Text style={styles.advFilterLabel}>Sold Properties</Text>
+              <View style={styles.advFilterChips}>
+                {[
+                  { value: '', label: 'All' },
+                  { value: 'false', label: 'Not Sold' },
+                  { value: 'true', label: 'Sold Only' },
+                ].map((s) => (
+                  <TouchableOpacity
+                    key={s.value}
+                    style={[styles.advFilterChip, soldFilter === s.value && styles.advFilterChipActive]}
+                    onPress={() => setSoldFilter(s.value)}
+                  >
+                    <Text style={[styles.advFilterChipText, soldFilter === s.value && styles.advFilterChipTextActive]}>{s.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Actions */}
+              <View style={styles.advFilterActions}>
+                <TouchableOpacity
+                  style={styles.advFilterClearBtn}
+                  onPress={() => {
+                    setMinPricePerShare('');
+                    setMaxPricePerShare('');
+                    setStatusFilter('');
+                    setSoldFilter('');
+                  }}
+                >
+                  <Text style={styles.advFilterClearText}>Clear All</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.advFilterApplyBtn}
+                  onPress={() => setShowAdvanced(false)}
+                >
+                  <LinearGradient colors={['#0284c7', '#0369a1']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.advFilterApplyGradient}>
+                    <Text style={styles.advFilterApplyText}>Apply Filters</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
           </View>
         </Pressable>
       </Modal>
@@ -893,5 +1012,106 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#94a3b8',
     fontSize: 14,
+  },
+
+  // Advanced filters
+  advancedSheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '75%',
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 20,
+  },
+  advFilterLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#334155',
+    marginBottom: 8,
+    marginTop: 16,
+  },
+  advFilterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  advFilterInput: {
+    flex: 1,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    backgroundColor: '#f8fafc',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: '#0f172a',
+  },
+  advFilterDash: {
+    color: '#94a3b8',
+    fontSize: 16,
+  },
+  advFilterChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  advFilterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: '#f1f5f9',
+  },
+  advFilterChipActive: {
+    backgroundColor: '#0284c7',
+  },
+  advFilterChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  advFilterChipTextActive: {
+    color: '#fff',
+  },
+  advFilterActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
+  advFilterClearBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    alignItems: 'center',
+  },
+  advFilterClearText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#64748b',
+  },
+  advFilterApplyBtn: {
+    flex: 1,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  advFilterApplyGradient: {
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  advFilterApplyText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#fff',
   },
 });

@@ -39,6 +39,7 @@ export class PropertiesService {
         { title: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } },
         { location: { contains: search, mode: 'insensitive' } },
+        { refNumber: { contains: search, mode: 'insensitive' } },
       ];
     }
     if (location) where.location = { contains: location, mode: 'insensitive' };
@@ -49,6 +50,18 @@ export class PropertiesService {
       if (maxPrice) where.totalPrice.lte = Number(maxPrice);
     }
     if (minRoi) where.roi = { gte: Number(minRoi) };
+
+    // Advanced filters
+    const { minPricePerShare, maxPricePerShare, minAvailableShares, propertyTypeId, sold } = query as any;
+    if (minPricePerShare || maxPricePerShare) {
+      where.pricePerShare = {};
+      if (minPricePerShare) where.pricePerShare.gte = Number(minPricePerShare);
+      if (maxPricePerShare) where.pricePerShare.lte = Number(maxPricePerShare);
+    }
+    if (minAvailableShares) where.availableShares = { gte: Number(minAvailableShares) };
+    if (propertyTypeId) where.propertyTypeId = propertyTypeId;
+    if (sold === 'true') where.status = 'SOLD';
+    if (sold === 'false') where.status = { not: 'SOLD' };
 
     const [properties, total] = await Promise.all([
       this.prisma.property.findMany({
