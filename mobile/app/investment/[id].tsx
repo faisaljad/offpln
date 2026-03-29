@@ -282,7 +282,7 @@ export default function InvestmentDetailScreen() {
           </View>
           <View style={styles.payoutStatsRow}>
             <View style={styles.payoutStatCard}>
-              <Text style={styles.payoutProfitVal}>{formatCurrency(investment.payout.paidAmount || investment.totalAmount)}</Text>
+              <Text style={styles.payoutProfitVal}>{formatCurrency(investment.payout.paidAmount > 0 ? investment.payout.paidAmount : investment.payout.totalReturn - investment.payout.profitAmount)}</Text>
               <Text style={styles.payoutStatLabel}>You Paid</Text>
             </View>
             <View style={styles.payoutStatCard}>
