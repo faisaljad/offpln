@@ -145,8 +145,13 @@ export default function MarketplaceScreen() {
                   </View>
                   <View style={styles.paymentSummaryDivider} />
                   <View style={styles.paymentSummaryItem}>
-                    <Text style={styles.paymentSummaryLabel}>Total</Text>
-                    <Text style={styles.paymentSummaryValue}>{formatCurrency(totalInv)}</Text>
+                    <Text style={styles.paymentSummaryLabel}>Original</Text>
+                    <Text style={styles.paymentSummaryValue}>{formatCurrency((prop?.pricePerShare ?? 0) * (item.investment?.sharesPurchased ?? 0))}</Text>
+                  </View>
+                  <View style={styles.paymentSummaryDivider} />
+                  <View style={styles.paymentSummaryItem}>
+                    <Text style={styles.paymentSummaryLabel}>New Price</Text>
+                    <Text style={[styles.paymentSummaryValue, { color: '#0284c7', fontWeight: '800' }]}>{formatCurrency(item.askPrice + unpaid)}</Text>
                   </View>
                 </View>
               </>
