@@ -73,6 +73,9 @@
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
       <a href="/properties" class="text-gray-400 hover:text-gray-600">← Properties</a>
+      {#if p.refNumber}
+        <span class="text-sm font-mono text-gray-400 bg-gray-100 px-2 py-1 rounded">{p.refNumber}</span>
+      {/if}
       <h1 class="text-2xl font-bold text-gray-900">{p.title}</h1>
       <span class={statusColor[p.status] ?? 'badge-pending'}>{p.status}</span>
     </div>

@@ -5,6 +5,7 @@ import { apiFetch } from '$lib/utils/api';
 import { z } from 'zod';
 
 const PropertySchema = z.object({
+  refNumber: z.string().min(1),
   title: z.string().min(3),
   description: z.string().min(1),
   location: z.string().min(2),

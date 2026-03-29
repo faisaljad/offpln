@@ -14,6 +14,9 @@ import { PropertyStatus } from '@prisma/client';
 
 export class CreatePropertyDto {
   @IsString()
+  refNumber: string;
+
+  @IsString()
   title: string;
 
   @IsString()

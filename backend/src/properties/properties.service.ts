@@ -58,6 +58,7 @@ export class PropertiesService {
         orderBy: { createdAt: 'desc' },
         select: {
           id: true,
+          refNumber: true,
           title: true,
           location: true,
           developer: true,

@@ -141,9 +141,15 @@
     <div class="card space-y-4">
       <h2 class="text-lg font-semibold text-gray-900">Basic Information</h2>
 
-      <div>
-        <label class="label" for="title">Title *</label>
-        <input id="title" name="title" class="input" required value={form?.values?.title ?? ''} placeholder="Skyline Residences — Downtown Dubai" />
+      <div class="grid grid-cols-4 gap-4">
+        <div>
+          <label class="label" for="refNumber">Ref Number *</label>
+          <input id="refNumber" name="refNumber" class="input" required value={form?.values?.refNumber ?? ''} placeholder="OFF-001" />
+        </div>
+        <div class="col-span-3">
+          <label class="label" for="title">Title *</label>
+          <input id="title" name="title" class="input" required value={form?.values?.title ?? ''} placeholder="Skyline Residences — Downtown Dubai" />
+        </div>
         {#if form?.errors?.title}<p class="text-red-500 text-xs mt-1">{form.errors.title[0]}</p>{/if}
       </div>
 

@@ -70,6 +70,7 @@ model Emirate {
 
 model Property {
   id              String   @id @default(uuid())
+  refNumber       String   @unique
   title           String
   description     String
   location        String

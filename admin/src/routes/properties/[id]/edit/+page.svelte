@@ -177,9 +177,15 @@
       <div class="card space-y-4">
         <h2 class="text-lg font-semibold">Basic Information</h2>
 
-        <div>
-          <label class="label">Title *</label>
-          <input name="title" class="input" required value={form?.values?.title ?? prop.title} />
+        <div class="grid grid-cols-4 gap-4">
+          <div>
+            <label class="label">Ref Number *</label>
+            <input name="refNumber" class="input" required value={form?.values?.refNumber ?? prop.refNumber ?? ''} />
+          </div>
+          <div class="col-span-3">
+            <label class="label">Title *</label>
+            <input name="title" class="input" required value={form?.values?.title ?? prop.title} />
+          </div>
         </div>
 
         <div>
