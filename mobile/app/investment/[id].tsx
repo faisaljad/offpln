@@ -282,11 +282,21 @@ export default function InvestmentDetailScreen() {
           </View>
           <View style={styles.payoutStatsRow}>
             <View style={styles.payoutStatCard}>
-              <Text style={styles.payoutProfitVal}>{formatCurrency(investment.payout.paidAmount > 0 ? investment.payout.paidAmount : investment.payout.totalReturn - investment.payout.profitAmount)}</Text>
+              <Text style={styles.payoutProfitVal}>{formatCurrency(
+                investment.payments
+                  ?.filter((p: any) => p.status === 'PAID')
+                  .reduce((s: number, p: any) => s + p.amount, 0) || 0
+              )}</Text>
               <Text style={styles.payoutStatLabel}>You Paid</Text>
             </View>
             <View style={styles.payoutStatCard}>
-              <Text style={[styles.payoutProfitVal, { color: '#059669' }]}>+{formatCurrency(investment.payout.profitAmount)}</Text>
+              <Text style={[styles.payoutProfitVal, { color: '#059669' }]}>+{formatCurrency(
+                investment.payout.totalReturn - (
+                  investment.payments
+                    ?.filter((p: any) => p.status === 'PAID')
+                    .reduce((s: number, p: any) => s + p.amount, 0) || 0
+                )
+              )}</Text>
               <Text style={styles.payoutStatLabel}>Profit</Text>
             </View>
             <View style={[styles.payoutStatCard, { backgroundColor: '#f0fdf4' }]}>

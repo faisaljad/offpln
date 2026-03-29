@@ -225,14 +225,17 @@ export default function InvestmentsScreen() {
             <Text style={styles.statLabel}>Invested</Text>
           </View>
           <View style={styles.statDivider} />
-          <View style={styles.stat}>
-            <Text style={[styles.statValue, { color: '#10b981' }]}>
-              {isSold && item.property.soldPrice && item.property.totalPrice
-                ? ((item.property.soldPrice - item.property.totalPrice) / item.property.totalPrice * 100).toFixed(1)
-                : item.property.roi}%
-            </Text>
-            <Text style={styles.statLabel}>{isSold ? 'Actual ROI' : 'Exp. ROI'}</Text>
-          </View>
+          {(() => {
+            const youPaid = item.payments?.filter((p: any) => p.status === 'PAID').reduce((s: number, p: any) => s + p.amount, 0) || 0;
+            const profit = isSold && item.payout ? item.payout.totalReturn - youPaid : 0;
+            const roiPct = isSold && youPaid > 0 ? ((profit / youPaid) * 100).toFixed(1) : item.property.roi;
+            return (
+              <View style={styles.stat}>
+                <Text style={[styles.statValue, { color: '#10b981' }]}>{roiPct}%</Text>
+                <Text style={styles.statLabel}>{isSold ? 'Profit' : 'Exp. ROI'}</Text>
+              </View>
+            );
+          })()}
           {isSold && item.payout && (
             <>
               <View style={styles.statDivider} />
