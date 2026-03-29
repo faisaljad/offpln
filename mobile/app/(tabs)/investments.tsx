@@ -118,20 +118,6 @@ export default function InvestmentsScreen() {
               <Text style={styles.portfolioStatLabel}>Investments</Text>
             </View>
           </View>
-          <View style={styles.portfolioStatDivider} />
-          <View style={styles.portfolioStat}>
-            <View style={styles.portfolioStatIcon}>
-              <Ionicons name="trending-up-outline" size={14} color="#7dd3fc" />
-            </View>
-            <View>
-              <Text style={styles.portfolioStatValue}>
-                {investments.length > 0
-                  ? `${(investments.reduce((s, i) => s + i.property.roi, 0) / investments.length).toFixed(1)}%`
-                  : '0%'}
-              </Text>
-              <Text style={styles.portfolioStatLabel}>Avg ROI</Text>
-            </View>
-          </View>
         </View>
       </LinearGradient>
     );
