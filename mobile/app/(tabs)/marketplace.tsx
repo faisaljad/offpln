@@ -78,6 +78,7 @@ export default function MarketplaceScreen() {
     const isMine = user?.id === item.sellerId;
     return (
       <View style={styles.card}>
+        <TouchableOpacity activeOpacity={0.85} onPress={() => prop?.id && router.push(`/property/${prop.id}`)}>
         {prop?.images?.[0] ? (
           <View style={styles.imageContainer}>
             <Image source={{ uri: prop.images[0] }} style={styles.cardImage} resizeMode="cover" />
@@ -104,6 +105,7 @@ export default function MarketplaceScreen() {
             <Ionicons name="location-outline" size={12} color="#94a3b8" />
             <Text style={styles.cardLocation}>{prop?.location ?? '—'}</Text>
           </View>
+        </TouchableOpacity>
 
           <View style={styles.statsRow}>
             <View style={styles.statPill}>
