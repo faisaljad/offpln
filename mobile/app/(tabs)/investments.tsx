@@ -93,6 +93,7 @@ export default function InvestmentsScreen() {
   }
 
   const totalInvested = investments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const totalPayoutValue = investments.reduce((sum, inv) => sum + (inv.payout?.totalReturn || 0), 0);
 
   function renderHeader() {
     return (
@@ -102,7 +103,6 @@ export default function InvestmentsScreen() {
         end={{ x: 1, y: 1 }}
         style={styles.portfolioHeader}
       >
-        {/* Decorative circles */}
         <View style={styles.decorCircle1} />
         <View style={styles.decorCircle2} />
 
@@ -118,6 +118,20 @@ export default function InvestmentsScreen() {
               <Text style={styles.portfolioStatLabel}>Investments</Text>
             </View>
           </View>
+          {totalPayoutValue > 0 && (
+            <>
+              <View style={styles.portfolioStatDivider} />
+              <View style={styles.portfolioStat}>
+                <View style={styles.portfolioStatIcon}>
+                  <Ionicons name="cash-outline" size={14} color="#4ade80" />
+                </View>
+                <View>
+                  <Text style={[styles.portfolioStatValue, { color: '#4ade80' }]}>{formatCurrency(totalPayoutValue)}</Text>
+                  <Text style={styles.portfolioStatLabel}>Total Payouts</Text>
+                </View>
+              </View>
+            </>
+          )}
         </View>
       </LinearGradient>
     );
