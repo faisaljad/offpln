@@ -282,26 +282,26 @@ export default function InvestmentDetailScreen() {
           </View>
           <View style={styles.payoutStatsRow}>
             <View style={styles.payoutStatCard}>
-              <Text style={styles.payoutProfitVal}>{formatCurrency(
+              <Text style={styles.payoutStatLabel}>You Paid</Text>
+              <Text style={[styles.payoutProfitVal, { color: '#64748b' }]}>{formatCurrency(
                 investment.payments
                   ?.filter((p: any) => p.status === 'PAID')
                   .reduce((s: number, p: any) => s + p.amount, 0) || 0
               )}</Text>
-              <Text style={styles.payoutStatLabel}>You Paid</Text>
             </View>
             <View style={styles.payoutStatCard}>
-              <Text style={[styles.payoutProfitVal, { color: '#059669' }]}>+{formatCurrency(
+              <Text style={styles.payoutStatLabel}>Profit</Text>
+              <Text style={styles.payoutProfitVal}>+{formatCurrency(
                 investment.payout.totalReturn - (
                   investment.payments
                     ?.filter((p: any) => p.status === 'PAID')
                     .reduce((s: number, p: any) => s + p.amount, 0) || 0
                 )
               )}</Text>
-              <Text style={styles.payoutStatLabel}>Profit</Text>
             </View>
             <View style={[styles.payoutStatCard, { backgroundColor: '#f0fdf4' }]}>
-              <Text style={styles.payoutTotalVal}>{formatCurrency(investment.payout.totalReturn)}</Text>
               <Text style={styles.payoutStatLabel}>Total Return</Text>
+              <Text style={styles.payoutTotalVal}>{formatCurrency(investment.payout.totalReturn)}</Text>
             </View>
           </View>
           {investment.payout.receiptUrl && (
@@ -706,10 +706,10 @@ const styles = StyleSheet.create({
   payoutTitle: { flex: 1, fontSize: 15, fontWeight: '700', color: '#059669', letterSpacing: 0.1 },
   payoutStatusPill: { borderRadius: 12, paddingHorizontal: 12, paddingVertical: 4 },
   payoutStatusText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.2 },
-  payoutStatsRow: { flexDirection: 'row', gap: 12 },
-  payoutStatCard: { flex: 1, backgroundColor: '#f0fdf4', borderRadius: 14, padding: 14, alignItems: 'center' },
-  payoutProfitVal: { fontSize: 14, fontWeight: '800', color: '#059669' },
-  payoutTotalVal: { fontSize: 14, fontWeight: '800', color: '#0c4a6e' },
+  payoutStatsRow: { gap: 10 },
+  payoutStatCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14 },
+  payoutProfitVal: { fontSize: 16, fontWeight: '800', color: '#059669' },
+  payoutTotalVal: { fontSize: 16, fontWeight: '800', color: '#0c4a6e' },
   payoutStatLabel: { fontSize: 11, color: '#94a3b8', marginTop: 4, letterSpacing: 0.2 },
   payoutReceipt: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
