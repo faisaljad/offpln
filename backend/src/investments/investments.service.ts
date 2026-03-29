@@ -111,6 +111,7 @@ export class InvestmentsService {
           },
           payments: true,
           transfer: true,
+          payout: true,
         },
         orderBy: { createdAt: 'desc' },
       }),

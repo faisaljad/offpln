@@ -19,6 +19,14 @@ interface Transfer {
   status: string;
 }
 
+interface Payout {
+  id: string;
+  profitAmount: number;
+  totalReturn: number;
+  status: string;
+  paidAt?: string;
+}
+
 interface Investment {
   id: string;
   sharesPurchased: number;
@@ -28,6 +36,7 @@ interface Investment {
   property: { title: string; location: string; roi: number; status: string; totalPrice: number; soldPrice: number | null };
   payments: { status: string; amount: number; dueDate?: string }[];
   transfer?: Transfer | null;
+  payout?: Payout | null;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -134,16 +143,40 @@ export default function InvestmentsScreen() {
     const nextPayment = item.payments?.find((p) => p.status === 'PENDING' && p.dueDate);
     const transferStyle = item.transfer ? TRANSFER_STYLES[item.transfer.status] : null;
     const progressPercent = (paidCount / totalPayments) * 100;
+    const isSold = item.property.status === 'SOLD';
+    const hasPayout = !!item.payout;
+    const payoutPaid = item.payout?.status === 'PAID';
 
     return (
       <TouchableOpacity
-        style={styles.card}
+        style={[styles.card, isSold && styles.soldCard]}
         onPress={() => router.push(`/investment/${item.id}`)}
         activeOpacity={0.9}
       >
+        {/* Sold banner */}
+        {isSold && (
+          <LinearGradient
+            colors={['#059669', '#047857']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.soldBanner}
+          >
+            <Ionicons name="checkmark-circle" size={14} color="#fff" />
+            <Text style={styles.soldBannerText}>Property Sold</Text>
+            {hasPayout && (
+              <View style={[styles.payoutLabel, payoutPaid ? styles.payoutLabelPaid : styles.payoutLabelPending]}>
+                <Ionicons name={payoutPaid ? 'wallet' : 'time-outline'} size={11} color={payoutPaid ? '#059669' : '#d97706'} />
+                <Text style={[styles.payoutLabelText, { color: payoutPaid ? '#059669' : '#d97706' }]}>
+                  {payoutPaid ? 'Payout Received' : 'Payout Pending'}
+                </Text>
+              </View>
+            )}
+          </LinearGradient>
+        )}
+
         <View style={styles.cardHeader}>
-          <View style={styles.cardHeaderIcon}>
-            <Ionicons name="business" size={20} color="#0284c7" />
+          <View style={[styles.cardHeaderIcon, isSold && { backgroundColor: '#d1fae5' }]}>
+            <Ionicons name="business" size={20} color={isSold ? '#059669' : '#0284c7'} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.propertyTitle} numberOfLines={1}>{item.property.title}</Text>
@@ -152,24 +185,20 @@ export default function InvestmentsScreen() {
               <Text style={styles.location}>{item.property.location}</Text>
             </View>
           </View>
-          <View style={{ alignItems: 'flex-end', gap: 4 }}>
-            <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.status] + '15' }]}>
-              <Ionicons name={(STATUS_ICONS[item.status] || 'ellipse-outline') as any} size={11} color={STATUS_COLORS[item.status]} />
-              <Text style={[styles.statusText, { color: STATUS_COLORS[item.status] }]}>{item.status}</Text>
+          {!isSold && (
+            <View style={{ alignItems: 'flex-end', gap: 4 }}>
+              <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[item.status] + '15' }]}>
+                <Ionicons name={(STATUS_ICONS[item.status] || 'ellipse-outline') as any} size={11} color={STATUS_COLORS[item.status]} />
+                <Text style={[styles.statusText, { color: STATUS_COLORS[item.status] }]}>{item.status}</Text>
+              </View>
+              {item.property.status === 'SOLD_OUT' && (
+                <View style={[styles.statusBadge, { backgroundColor: 'rgba(100,116,139,0.1)' }]}>
+                  <Ionicons name="lock-closed" size={10} color="#64748b" />
+                  <Text style={[styles.statusText, { color: '#64748b' }]}>SOLD OUT</Text>
+                </View>
+              )}
             </View>
-            {item.property.status === 'SOLD' && (
-              <View style={[styles.statusBadge, { backgroundColor: 'rgba(5,150,105,0.1)' }]}>
-                <Ionicons name="checkmark-circle" size={11} color="#059669" />
-                <Text style={[styles.statusText, { color: '#059669' }]}>SOLD</Text>
-              </View>
-            )}
-            {item.property.status === 'SOLD_OUT' && (
-              <View style={[styles.statusBadge, { backgroundColor: 'rgba(100,116,139,0.1)' }]}>
-                <Ionicons name="lock-closed" size={10} color="#64748b" />
-                <Text style={[styles.statusText, { color: '#64748b' }]}>SOLD OUT</Text>
-              </View>
-            )}
-          </View>
+          )}
         </View>
 
         {transferStyle && (
@@ -198,12 +227,21 @@ export default function InvestmentsScreen() {
           <View style={styles.statDivider} />
           <View style={styles.stat}>
             <Text style={[styles.statValue, { color: '#10b981' }]}>
-              {item.property.status === 'SOLD' && item.property.soldPrice && item.property.totalPrice
+              {isSold && item.property.soldPrice && item.property.totalPrice
                 ? ((item.property.soldPrice - item.property.totalPrice) / item.property.totalPrice * 100).toFixed(1)
                 : item.property.roi}%
             </Text>
-            <Text style={styles.statLabel}>{item.property.status === 'SOLD' ? 'Actual ROI' : 'Exp. ROI'}</Text>
+            <Text style={styles.statLabel}>{isSold ? 'Actual ROI' : 'Exp. ROI'}</Text>
           </View>
+          {isSold && item.payout && (
+            <>
+              <View style={styles.statDivider} />
+              <View style={styles.stat}>
+                <Text style={[styles.statValue, { color: '#059669' }]}>{formatCurrency(item.payout.totalReturn)}</Text>
+                <Text style={styles.statLabel}>Return</Text>
+              </View>
+            </>
+          )}
         </View>
 
         <View style={styles.paymentSection}>
@@ -384,15 +422,52 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#ffffff',
     borderRadius: 20,
-    padding: 20,
     marginBottom: 16,
     shadowColor: '#0c4a6e',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 16,
     elevation: 3,
+    overflow: 'hidden' as const,
+  },
+  soldCard: {
+    borderWidth: 1.5,
+    borderColor: '#d1fae5',
+  },
+  soldBanner: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 6,
+  },
+  soldBannerText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700' as const,
+    flex: 1,
+  },
+  payoutLabel: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  payoutLabelPaid: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+  },
+  payoutLabelPending: {
+    backgroundColor: 'rgba(255,255,255,0.85)',
+  },
+  payoutLabelText: {
+    fontSize: 11,
+    fontWeight: '600' as const,
   },
   cardHeader: {
+    padding: 20,
+    paddingBottom: 0,
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
@@ -442,6 +517,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     borderRadius: 12,
+    marginHorizontal: 20,
     paddingHorizontal: 12,
     paddingVertical: 10,
     marginTop: 14,
@@ -464,6 +540,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#f8fafc',
     borderRadius: 14,
+    marginHorizontal: 20,
     padding: 14,
     marginTop: 16,
     alignItems: 'center',
@@ -492,6 +569,8 @@ const styles = StyleSheet.create({
   // Payment Progress
   paymentSection: {
     marginTop: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   paymentLabelRow: {
     flexDirection: 'row',
