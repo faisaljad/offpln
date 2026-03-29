@@ -79,33 +79,35 @@ export default function MarketplaceScreen() {
     return (
       <View style={styles.card}>
         <TouchableOpacity activeOpacity={0.85} onPress={() => prop?.id && router.push(`/property/${prop.id}`)}>
-        {prop?.images?.[0] ? (
-          <View style={styles.imageContainer}>
-            <Image source={{ uri: prop.images[0] }} style={styles.cardImage} resizeMode="cover" />
-            <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.5)']}
-              style={styles.imageOverlay}
-            />
-            <View style={styles.imageBadge}>
-              <Ionicons name="pricetag" size={10} color="#fbbf24" />
-              <Text style={styles.imageBadgeText}>{formatCurrency(item.askPrice)}</Text>
+          {prop?.images?.[0] ? (
+            <View style={styles.imageContainer}>
+              <Image source={{ uri: prop.images[0] }} style={styles.cardImage} resizeMode="cover" />
+              <LinearGradient
+                colors={['transparent', 'rgba(0,0,0,0.5)']}
+                style={styles.imageOverlay}
+              />
+              <View style={styles.imageBadge}>
+                <Ionicons name="pricetag" size={10} color="#fbbf24" />
+                <Text style={styles.imageBadgeText}>{formatCurrency(item.askPrice)}</Text>
+              </View>
             </View>
-          </View>
-        ) : (
-          <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
-            <View style={styles.placeholderIcon}>
-              <Ionicons name="business-outline" size={32} color="#94a3b8" />
+          ) : (
+            <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
+              <View style={styles.placeholderIcon}>
+                <Ionicons name="business-outline" size={32} color="#94a3b8" />
+              </View>
             </View>
-          </View>
-        )}
-
-        <View style={styles.cardBody}>
-          <Text style={styles.cardTitle} numberOfLines={1}>{prop?.title ?? 'Unknown Property'}</Text>
-          <View style={styles.locationRow}>
-            <Ionicons name="location-outline" size={12} color="#94a3b8" />
-            <Text style={styles.cardLocation}>{prop?.location ?? '—'}</Text>
+          )}
+          <View style={{ paddingHorizontal: 18, paddingTop: 14 }}>
+            <Text style={styles.cardTitle} numberOfLines={1}>{prop?.title ?? 'Unknown Property'}</Text>
+            <View style={styles.locationRow}>
+              <Ionicons name="location-outline" size={12} color="#94a3b8" />
+              <Text style={styles.cardLocation}>{prop?.location ?? '—'}</Text>
+            </View>
           </View>
         </TouchableOpacity>
+
+        <View style={styles.cardBody}>
 
           <View style={styles.statsRow}>
             <View style={styles.statPill}>
