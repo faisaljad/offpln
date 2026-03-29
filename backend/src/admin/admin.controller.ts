@@ -113,6 +113,16 @@ export class AdminController {
     return this.adminService.setSold(id, Number(sellingPrice));
   }
 
+  @Get('payouts/stats')
+  getPayoutStats() {
+    return this.adminService.getPayoutStats();
+  }
+
+  @Get('payouts')
+  getAllPayouts(@Query('status') status?: string) {
+    return this.adminService.getAllPayouts(status);
+  }
+
   @Get('properties/:id/payouts')
   getPropertyPayouts(@Param('id') id: string) {
     return this.adminService.getPropertyPayouts(id);

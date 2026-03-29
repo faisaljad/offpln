@@ -154,6 +154,34 @@ export class AdminService {
     return { success: true, payoutsCreated: investments.length };
   }
 
+  async getAllPayouts(status?: string) {
+    const where: any = status ? { status } : {};
+    return this.prisma.payout.findMany({
+      where,
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        property: { select: { id: true, title: true, location: true, soldPrice: true, totalPrice: true } },
+        investment: { select: { sharesPurchased: true, totalAmount: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getPayoutStats() {
+    const [totalPending, totalPaid, totalPendingAmount, totalPaidAmount] = await Promise.all([
+      this.prisma.payout.count({ where: { status: 'PENDING' } }),
+      this.prisma.payout.count({ where: { status: 'PAID' } }),
+      this.prisma.payout.aggregate({ where: { status: 'PENDING' }, _sum: { totalReturn: true } }),
+      this.prisma.payout.aggregate({ where: { status: 'PAID' }, _sum: { totalReturn: true } }),
+    ]);
+    return {
+      totalPending,
+      totalPaid,
+      pendingAmount: totalPendingAmount._sum.totalReturn || 0,
+      paidAmount: totalPaidAmount._sum.totalReturn || 0,
+    };
+  }
+
   async getPropertyPayouts(propertyId: string) {
     return this.prisma.payout.findMany({
       where: { propertyId },
