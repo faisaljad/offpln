@@ -214,38 +214,48 @@ export default function InvestmentsScreen() {
           </TouchableOpacity>
         )}
 
-        <View style={styles.statsContainer}>
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>{item.sharesPurchased}</Text>
-            <Text style={styles.statLabel}>Shares</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>{formatCurrency(item.totalAmount)}</Text>
-            <Text style={styles.statLabel}>Invested</Text>
-          </View>
-          <View style={styles.statDivider} />
-          {(() => {
-            const youPaid = item.payments?.filter((p: any) => p.status === 'PAID').reduce((s: number, p: any) => s + p.amount, 0) || 0;
-            const profit = isSold && item.payout ? item.payout.totalReturn - youPaid : 0;
-            const roiPct = isSold && youPaid > 0 ? ((profit / youPaid) * 100).toFixed(1) : item.property.roi;
-            return (
-              <View style={styles.stat}>
-                <Text style={[styles.statValue, { color: '#10b981' }]}>{roiPct}%</Text>
-                <Text style={styles.statLabel}>{isSold ? 'Profit' : 'Exp. ROI'}</Text>
+        {isSold && item.payout ? (() => {
+          const youPaid = item.payments?.filter((p: any) => p.status === 'PAID').reduce((s: number, p: any) => s + p.amount, 0) || 0;
+          const profit = item.payout.totalReturn - youPaid;
+          const roiPct = youPaid > 0 ? ((profit / youPaid) * 100).toFixed(1) : '0';
+          return (
+            <View style={styles.soldStatsGrid}>
+              <View style={styles.soldStatItem}>
+                <Text style={styles.soldStatLabel}>Shares</Text>
+                <Text style={styles.soldStatValue}>{item.sharesPurchased} ({item.sharesPurchased * 10}%)</Text>
               </View>
-            );
-          })()}
-          {isSold && item.payout && (
-            <>
-              <View style={styles.statDivider} />
-              <View style={styles.stat}>
-                <Text style={[styles.statValue, { color: '#059669' }]}>{formatCurrency(item.payout.totalReturn)}</Text>
-                <Text style={styles.statLabel}>Return</Text>
+              <View style={styles.soldStatItem}>
+                <Text style={styles.soldStatLabel}>You Paid</Text>
+                <Text style={styles.soldStatValue}>{formatCurrency(youPaid)}</Text>
               </View>
-            </>
-          )}
-        </View>
+              <View style={styles.soldStatItem}>
+                <Text style={styles.soldStatLabel}>Profit ({roiPct}%)</Text>
+                <Text style={[styles.soldStatValue, { color: '#059669' }]}>+{formatCurrency(profit)}</Text>
+              </View>
+              <View style={[styles.soldStatItem, { backgroundColor: '#f0fdf4' }]}>
+                <Text style={styles.soldStatLabel}>Total Return</Text>
+                <Text style={[styles.soldStatValue, { color: '#0c4a6e', fontWeight: '800' }]}>{formatCurrency(item.payout.totalReturn)}</Text>
+              </View>
+            </View>
+          );
+        })() : (
+          <View style={styles.statsContainer}>
+            <View style={styles.stat}>
+              <Text style={styles.statValue}>{item.sharesPurchased}</Text>
+              <Text style={styles.statLabel}>Shares</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.stat}>
+              <Text style={styles.statValue}>{formatCurrency(item.totalAmount)}</Text>
+              <Text style={styles.statLabel}>Invested</Text>
+            </View>
+            <View style={styles.statDivider} />
+            <View style={styles.stat}>
+              <Text style={[styles.statValue, { color: '#10b981' }]}>{item.property.roi}%</Text>
+              <Text style={styles.statLabel}>Exp. ROI</Text>
+            </View>
+          </View>
+        )}
 
         <View style={styles.paymentSection}>
           <View style={styles.paymentLabelRow}>
@@ -556,6 +566,33 @@ const styles = StyleSheet.create({
     width: 1,
     height: 28,
     backgroundColor: '#e2e8f0',
+  },
+  soldStatsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginHorizontal: 20,
+    marginTop: 14,
+  },
+  soldStatItem: {
+    width: '47%' as any,
+    flexGrow: 1,
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  soldStatLabel: {
+    fontSize: 11,
+    color: '#94a3b8',
+    fontWeight: '500',
+    marginBottom: 4,
+    letterSpacing: 0.2,
+  },
+  soldStatValue: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#1e293b',
   },
   statValue: {
     fontSize: 14,
