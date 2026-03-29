@@ -106,22 +106,13 @@ export default function InvestmentsScreen() {
         <View style={styles.decorCircle1} />
         <View style={styles.decorCircle2} />
 
-        {totalPayoutValue > 0 ? (
-          <View style={styles.portfolioValuesRow}>
-            <View>
-              <Text style={styles.portfolioLabel}>Portfolio Value</Text>
-              <Text style={styles.portfolioValue}>{formatCurrency(totalInvested)}</Text>
-            </View>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={styles.portfolioLabel}>Total Payouts</Text>
-              <Text style={styles.portfolioValue}>{formatCurrency(totalPayoutValue)}</Text>
-            </View>
-          </View>
-        ) : (
-          <View>
-            <Text style={styles.portfolioLabel}>Portfolio Value</Text>
-            <Text style={[styles.portfolioValue, { fontSize: 30 }]}>{formatCurrency(totalInvested)}</Text>
-          </View>
+        <Text style={styles.portfolioLabel}>Portfolio Value</Text>
+        <Text style={styles.portfolioValue}>{formatCurrency(totalInvested)}</Text>
+        {totalPayoutValue > 0 && (
+          <>
+            <Text style={[styles.portfolioLabel, { marginTop: 12 }]}>Total Payouts</Text>
+            <Text style={styles.portfolioValue}>{formatCurrency(totalPayoutValue)}</Text>
+          </>
         )}
         <View style={styles.portfolioStats}>
           <View style={styles.portfolioStat}>
