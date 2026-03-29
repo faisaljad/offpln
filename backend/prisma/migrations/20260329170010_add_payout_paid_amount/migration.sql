@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Payout" ADD COLUMN     "paidAmount" DOUBLE PRECISION NOT NULL DEFAULT 0;

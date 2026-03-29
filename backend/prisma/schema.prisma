@@ -174,6 +174,7 @@ model Payout {
   investmentId String       @unique
   propertyId   String
   userId       String
+  paidAmount   Float      @default(0)
   profitAmount Float
   totalReturn  Float
   status       PayoutStatus @default(PENDING)

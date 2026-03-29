@@ -118,6 +118,7 @@ export class AdminService {
 
     const investments = await this.prisma.investment.findMany({
       where: { propertyId, status: 'APPROVED' },
+      include: { payments: true },
     });
 
     const payoutData: { userId: string; totalReturn: number; payoutId?: string }[] = [];
@@ -129,15 +130,21 @@ export class AdminService {
       });
 
       for (const inv of investments) {
+        // Calculate actual paid amount from payment schedule
+        const paidAmount = (inv as any).payments
+          ?.filter((p: any) => p.status === 'PAID')
+          .reduce((sum: number, p: any) => sum + p.amount, 0) || 0;
+
         // Investor's proportional share of the selling price
         const investorReturn = sellingPrice * (inv.sharesPurchased / property.totalShares);
-        const profitAmount   = investorReturn - inv.totalAmount;
+        // Profit based on what investor actually paid, not totalAmount
+        const profitAmount   = investorReturn - paidAmount;
         const totalReturn    = investorReturn;
 
         const payout = await tx.payout.upsert({
           where: { investmentId: inv.id },
-          create: { investmentId: inv.id, propertyId, userId: inv.userId, profitAmount, totalReturn },
-          update: { profitAmount, totalReturn },
+          create: { investmentId: inv.id, propertyId, userId: inv.userId, paidAmount, profitAmount, totalReturn },
+          update: { paidAmount, profitAmount, totalReturn },
         });
 
         payoutData.push({ userId: inv.userId, totalReturn, payoutId: payout.id });
