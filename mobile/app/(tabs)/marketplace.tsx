@@ -133,23 +133,20 @@ export default function MarketplaceScreen() {
                     <Text style={styles.statPillLabel}>Ask Price</Text>
                   </View>
                 </View>
-                <View style={styles.paymentSummary}>
-                  <View style={styles.paymentSummaryItem}>
+                <View style={styles.paymentSummaryGrid}>
+                  <View style={styles.paymentSummaryCell}>
                     <Text style={styles.paymentSummaryLabel}>Paid</Text>
                     <Text style={[styles.paymentSummaryValue, { color: '#059669' }]}>{formatCurrency(paid)}</Text>
                   </View>
-                  <View style={styles.paymentSummaryDivider} />
-                  <View style={styles.paymentSummaryItem}>
+                  <View style={styles.paymentSummaryCell}>
                     <Text style={styles.paymentSummaryLabel}>Unpaid</Text>
                     <Text style={[styles.paymentSummaryValue, { color: '#dc2626' }]}>{formatCurrency(unpaid)}</Text>
                   </View>
-                  <View style={styles.paymentSummaryDivider} />
-                  <View style={styles.paymentSummaryItem}>
-                    <Text style={styles.paymentSummaryLabel}>Original</Text>
+                  <View style={styles.paymentSummaryCell}>
+                    <Text style={styles.paymentSummaryLabel}>Original Price</Text>
                     <Text style={styles.paymentSummaryValue}>{formatCurrency((prop?.pricePerShare ?? 0) * (item.investment?.sharesPurchased ?? 0))}</Text>
                   </View>
-                  <View style={styles.paymentSummaryDivider} />
-                  <View style={styles.paymentSummaryItem}>
+                  <View style={styles.paymentSummaryCell}>
                     <Text style={styles.paymentSummaryLabel}>New Price</Text>
                     <Text style={[styles.paymentSummaryValue, { color: '#0284c7', fontWeight: '800' }]}>{formatCurrency(item.askPrice + unpaid)}</Text>
                   </View>
@@ -436,33 +433,30 @@ const styles = StyleSheet.create({
   statPillLabel: { fontSize: 10, color: '#94a3b8', fontWeight: '500' },
 
   // Seller
-  paymentSummary: {
+  paymentSummaryGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 14,
+  },
+  paymentSummaryCell: {
+    width: '47%' as any,
+    flexGrow: 1,
     backgroundColor: '#f8fafc',
     borderRadius: 10,
-    padding: 10,
-    marginBottom: 14,
-    alignItems: 'center',
-  },
-  paymentSummaryItem: {
-    flex: 1,
-    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
   paymentSummaryLabel: {
     fontSize: 10,
     color: '#94a3b8',
     fontWeight: '500',
-    marginBottom: 2,
+    marginBottom: 3,
   },
   paymentSummaryValue: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
     color: '#1e293b',
-  },
-  paymentSummaryDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: '#e2e8f0',
   },
   sellerRow: {
     flexDirection: 'row',
