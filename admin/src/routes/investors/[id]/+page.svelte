@@ -69,7 +69,7 @@
   </div>
 
   <!-- Stats grid -->
-  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
     <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
       <div class="flex items-center gap-2 mb-2">
         <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center"><span class="text-sm">💼</span></div>
