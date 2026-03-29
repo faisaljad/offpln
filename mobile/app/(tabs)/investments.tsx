@@ -106,8 +106,18 @@ export default function InvestmentsScreen() {
         <View style={styles.decorCircle1} />
         <View style={styles.decorCircle2} />
 
-        <Text style={styles.portfolioLabel}>Portfolio Value</Text>
-        <Text style={styles.portfolioValue}>{formatCurrency(totalInvested)}</Text>
+        <View style={styles.portfolioValuesRow}>
+          <View style={styles.portfolioValueBlock}>
+            <Text style={styles.portfolioLabel}>Portfolio Value</Text>
+            <Text style={styles.portfolioValue}>{formatCurrency(totalInvested)}</Text>
+          </View>
+          {totalPayoutValue > 0 && (
+            <View style={styles.portfolioValueBlock}>
+              <Text style={styles.portfolioLabel}>Total Payouts</Text>
+              <Text style={styles.portfolioValue}>{formatCurrency(totalPayoutValue)}</Text>
+            </View>
+          )}
+        </View>
         <View style={styles.portfolioStats}>
           <View style={styles.portfolioStat}>
             <View style={styles.portfolioStatIcon}>
@@ -118,20 +128,6 @@ export default function InvestmentsScreen() {
               <Text style={styles.portfolioStatLabel}>Investments</Text>
             </View>
           </View>
-          {totalPayoutValue > 0 && (
-            <>
-              <View style={styles.portfolioStatDivider} />
-              <View style={styles.portfolioStat}>
-                <View style={styles.portfolioStatIcon}>
-                  <Ionicons name="cash-outline" size={14} color="#4ade80" />
-                </View>
-                <View>
-                  <Text style={[styles.portfolioStatValue, { color: '#4ade80' }]}>{formatCurrency(totalPayoutValue)}</Text>
-                  <Text style={styles.portfolioStatLabel}>Total Payouts</Text>
-                </View>
-              </View>
-            </>
-          )}
         </View>
       </LinearGradient>
     );
@@ -377,9 +373,16 @@ const styles = StyleSheet.create({
     borderRadius: 35,
     backgroundColor: 'rgba(255,255,255,0.04)',
   },
+  portfolioValuesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  portfolioValueBlock: {
+  },
   portfolioLabel: {
     color: '#93c5fd',
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '500',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
@@ -387,7 +390,7 @@ const styles = StyleSheet.create({
   },
   portfolioValue: {
     color: '#ffffff',
-    fontSize: 30,
+    fontSize: 26,
     fontWeight: '800',
     letterSpacing: -0.5,
     marginBottom: 20,
