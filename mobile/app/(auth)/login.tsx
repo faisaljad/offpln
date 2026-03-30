@@ -113,9 +113,10 @@ export default function LoginScreen() {
   }
 
   function handleOtpChange(text: string, index: number) {
+    const cleaned = text.replace(/\D/g, '');
     // Handle paste of full code
-    if (text.length > 1) {
-      const digits = text.replace(/\D/g, '').slice(0, 6).split('');
+    if (cleaned.length > 1) {
+      const digits = cleaned.slice(0, 6).split('');
       const newOtp = ['', '', '', '', '', ''];
       digits.forEach((d, i) => { newOtp[i] = d; });
       setOtp(newOtp);
@@ -123,9 +124,9 @@ export default function LoginScreen() {
       return;
     }
     const newOtp = [...otp];
-    newOtp[index] = text;
+    newOtp[index] = cleaned.slice(0, 1);
     setOtp(newOtp);
-    if (text && index < 5) {
+    if (cleaned && index < 5) {
       otpRefs.current[index + 1]?.focus();
     }
   }
@@ -343,7 +344,6 @@ export default function LoginScreen() {
                     onChangeText={(text) => handleOtpChange(text, i)}
                     onKeyPress={({ nativeEvent }) => handleOtpKeyPress(nativeEvent.key, i)}
                     keyboardType="number-pad"
-                    maxLength={1}
                     selectTextOnFocus
                   />
                 ))}
