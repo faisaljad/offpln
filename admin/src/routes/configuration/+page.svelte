@@ -67,6 +67,8 @@
     return { type: 'percentage', value: '' };
   }
 
+  function getColor(color: string) { return colorMap[color] ?? colorMap.blue; }
+
   // Reactive state for each commission type selector
   let types: Record<string, string> = {};
   $: {
@@ -105,12 +107,16 @@
       </div>
 
       <div class="space-y-4">
-        {#each commissionFields as field}
-          {@const c = colorMap[field.color]}
-          {@const val = getVal(field.key)}
-          <div class="bg-white rounded-xl border {c.border} shadow-sm overflow-hidden">
+        {#each commissionFields as field (field.key)}
+          <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden" style="border-color: var(--border-{field.color}, #f1f5f9)">
             <div class="flex items-start gap-4 p-5">
-              <div class="w-12 h-12 rounded-xl {c.iconBg} flex items-center justify-center text-xl shrink-0">
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0"
+                class:bg-blue-100={field.color === 'blue'}
+                class:bg-emerald-100={field.color === 'emerald'}
+                class:bg-purple-100={field.color === 'purple'}
+                class:bg-amber-100={field.color === 'amber'}
+                class:bg-red-100={field.color === 'red'}
+              >
                 {field.icon}
               </div>
               <div class="flex-1 min-w-0">
@@ -130,7 +136,7 @@
                   <input
                     type="number"
                     name="{field.key}_value"
-                    value={val.value}
+                    value={getVal(field.key).value}
                     step="any"
                     min="0"
                     placeholder={types[field.key] === 'fixed' ? '0 AED' : '0 %'}
@@ -142,14 +148,17 @@
                 </div>
               </div>
             </div>
-            {#if val.value}
+            {#if getVal(field.key).value}
               <div class="px-5 pb-3 pt-0">
-                <div class="inline-flex items-center gap-1.5 {c.bg} px-3 py-1 rounded-full">
-                  <span class="w-1.5 h-1.5 rounded-full {c.iconBg}"></span>
-                  <span class="text-xs font-medium {c.text}">
-                    Active: {val.value}{types[field.key] === 'percentage' ? '%' : ' AED'} per transaction
-                  </span>
-                </div>
+                <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full"
+                  class:bg-blue-50={field.color === 'blue'} class:text-blue-600={field.color === 'blue'}
+                  class:bg-emerald-50={field.color === 'emerald'} class:text-emerald-600={field.color === 'emerald'}
+                  class:bg-purple-50={field.color === 'purple'} class:text-purple-600={field.color === 'purple'}
+                  class:bg-amber-50={field.color === 'amber'} class:text-amber-600={field.color === 'amber'}
+                  class:bg-red-50={field.color === 'red'} class:text-red-600={field.color === 'red'}
+                >
+                  Active: {getVal(field.key).value}{types[field.key] === 'percentage' ? '%' : ' AED'} per transaction
+                </span>
               </div>
             {/if}
           </div>
