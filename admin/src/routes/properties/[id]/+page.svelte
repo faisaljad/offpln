@@ -40,7 +40,7 @@
   let showSoldModal   = false;
   let originalSellingPrice = '';
   $: soldCommissionAmount = calcSoldCommission(Number(originalSellingPrice));
-  $: calculatedSellingPrice = Number(originalSellingPrice) + soldCommissionAmount;
+  $: calculatedSellingPrice = Number(originalSellingPrice) - soldCommissionAmount;
   // Auto-update sellingPrice when originalSellingPrice changes, but allow manual edit
   let sellingPrice = '';
   let sellingPriceManual = false;
@@ -472,7 +472,7 @@
           />
           {#if soldCommission && Number(originalSellingPrice) > 0}
             <p class="text-xs text-gray-500 mt-1">
-              Original {Number(originalSellingPrice).toLocaleString('en')} + Commission {soldCommissionAmount.toLocaleString('en')}
+              Original {Number(originalSellingPrice).toLocaleString('en')} - Commission {soldCommissionAmount.toLocaleString('en')}
               ({soldCommission.type === 'percentage' ? soldCommission.value + '%' : 'AED ' + soldCommission.value})
             </p>
           {/if}
