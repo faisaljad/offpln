@@ -27,16 +27,18 @@ export const load: PageServerLoad = async ({ cookies }) => {
 
   let propertyTypes: any[] = [];
   let emirates: any[] = [];
+  let settings: any = {};
   try {
-    [propertyTypes, emirates] = await Promise.all([
+    [propertyTypes, emirates, settings] = await Promise.all([
       apiFetch('/admin/property-types', { token }).catch(() => []),
       apiFetch('/admin/emirates', { token }).catch(() => []),
+      apiFetch('/settings', { token }).catch(() => ({})),
     ]);
   } catch {
-    // ignore — dropdowns will just be empty
+    // ignore
   }
 
-  return { propertyTypes, emirates };
+  return { propertyTypes, emirates, settings };
 };
 
 export const actions: Actions = {

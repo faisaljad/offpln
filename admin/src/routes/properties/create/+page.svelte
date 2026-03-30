@@ -81,6 +81,16 @@
   }
 
   $: emirates = data.emirates ?? [];
+  $: commission = (data.settings as any)?.investmentCommission ?? null;
+
+  let originalPrice = '';
+  $: commissionAmount = (() => {
+    const op = Number(originalPrice);
+    if (!op || !commission) return 0;
+    if (commission.type === 'percentage') return op * (commission.value / 100);
+    return commission.value || 0;
+  })();
+  $: calculatedTotal = Number(originalPrice) + commissionAmount;
 
   let latitude: number | '' = '';
   let longitude: number | '' = '';
@@ -241,11 +251,16 @@
       <div class="grid grid-cols-3 gap-4">
         <div>
           <label class="label" for="originalPrice">Original Price (AED) *</label>
-          <input id="originalPrice" name="originalPrice" type="number" class="input" min="1" step="any" required value={form?.values?.originalPrice ?? ''} placeholder="Cost price" />
+          <input id="originalPrice" name="originalPrice" type="number" class="input" min="1" step="any" required bind:value={originalPrice} placeholder="Cost price" />
         </div>
         <div>
           <label class="label" for="totalPrice">Total Price (AED) *</label>
-          <input id="totalPrice" name="totalPrice" type="number" class="input" required min="1" value={form?.values?.totalPrice ?? ''} />
+          <input id="totalPrice" name="totalPrice" type="number" class="input" required min="1" value={calculatedTotal || form?.values?.totalPrice || ''} readonly class:bg-gray-50={!!commission} class:cursor-not-allowed={!!commission} />
+          {#if commission && Number(originalPrice) > 0}
+            <p class="text-xs text-gray-500 mt-1">
+              Original {originalPrice} + Commission {commissionAmount.toLocaleString('en')} ({commission.type === 'percentage' ? commission.value + '%' : 'AED ' + commission.value})
+            </p>
+          {/if}
         </div>
         <div>
           <label class="label">Available Stake</label>
