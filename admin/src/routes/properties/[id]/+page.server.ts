@@ -7,13 +7,14 @@ export const load: PageServerLoad = async ({ cookies, params }) => {
   const token = cookies.get('admin_token');
   if (!token) throw redirect(302, '/login');
 
-  const [property, investments, payouts] = await Promise.all([
+  const [property, investments, payouts, settings] = await Promise.all([
     apiFetch(`/admin/properties/${params.id}`, { token }),
     apiFetch(`/admin/investments?propertyId=${params.id}&limit=50`, { token }),
     apiFetch(`/admin/properties/${params.id}/payouts`, { token }).catch(() => []),
+    apiFetch('/settings', { token }).catch(() => ({})),
   ]);
 
-  return { property, investments: investments.investments ?? [], payouts: payouts ?? [] };
+  return { property, investments: investments.investments ?? [], payouts: payouts ?? [], settings };
 };
 
 async function adminFetch(path: string, token: string, method = 'GET', body?: any) {

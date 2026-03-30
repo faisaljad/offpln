@@ -27,10 +27,26 @@
     selectedPlanTab = paymentPlanNames[0];
   }
 
+  // Sold commission
+  $: soldCommission = (data.settings as any)?.soldCommission ?? null;
+
+  function calcSoldCommission(original: number) {
+    if (!soldCommission || !original) return 0;
+    if (soldCommission.type === 'percentage') return original * (soldCommission.value / 100);
+    return soldCommission.value || 0;
+  }
+
   // Modals
   let showSoldModal   = false;
-  let sellingPrice    = String(Math.round(data.property.totalPrice));
   let originalSellingPrice = '';
+  $: soldCommissionAmount = calcSoldCommission(Number(originalSellingPrice));
+  $: calculatedSellingPrice = Number(originalSellingPrice) + soldCommissionAmount;
+  // Auto-update sellingPrice when originalSellingPrice changes, but allow manual edit
+  let sellingPrice = '';
+  let sellingPriceManual = false;
+  $: if (!sellingPriceManual && calculatedSellingPrice > 0) {
+    sellingPrice = String(Math.round(calculatedSellingPrice));
+  }
 
   let showPayoutModal = false;
   let selectedPayout: any = null;
@@ -422,32 +438,8 @@
         </div>
 
         <div>
-          <label class="block text-sm font-semibold text-gray-700 mb-2" for="sellingPrice">
-            Final Selling Price (AED) <span class="text-red-500">*</span>
-          </label>
-          <input
-            id="sellingPrice"
-            type="number"
-            name="sellingPrice"
-            bind:value={sellingPrice}
-            min="1"
-            step="any"
-            required
-            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-200"
-            placeholder="e.g. 1400000"
-          />
-          {#if sellingPrice && Number(sellingPrice) > 0}
-            <p class="text-xs text-emerald-600 mt-1">
-              Gain: {fmt(Number(sellingPrice) - p.totalPrice)}
-              ({(((Number(sellingPrice) - p.totalPrice) / p.totalPrice) * 100).toFixed(1)}% return)
-            </p>
-          {/if}
-        </div>
-
-        <div>
           <label class="block text-sm font-semibold text-gray-700 mb-2" for="originalSellingPrice">
             Original Selling Price (AED) <span class="text-red-500">*</span>
-            <span class="text-xs text-gray-400 font-normal ml-1">Admin only — not shown to investors</span>
           </label>
           <input
             id="originalSellingPrice"
@@ -458,8 +450,38 @@
             step="any"
             required
             class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-200"
-            placeholder="Actual selling price before fees"
+            placeholder="e.g. 1400000"
           />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2" for="sellingPrice">
+            Final Selling Price (AED) <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="sellingPrice"
+            type="number"
+            name="sellingPrice"
+            bind:value={sellingPrice}
+            oninput={() => { sellingPriceManual = true; }}
+            min="1"
+            step="any"
+            required
+            class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-400 focus:ring-1 focus:ring-emerald-200"
+            placeholder="e.g. 1470000"
+          />
+          {#if soldCommission && Number(originalSellingPrice) > 0}
+            <p class="text-xs text-gray-500 mt-1">
+              Original {Number(originalSellingPrice).toLocaleString('en')} + Commission {soldCommissionAmount.toLocaleString('en')}
+              ({soldCommission.type === 'percentage' ? soldCommission.value + '%' : 'AED ' + soldCommission.value})
+            </p>
+          {/if}
+          {#if sellingPrice && Number(sellingPrice) > 0}
+            <p class="text-xs text-emerald-600 mt-1">
+              Gain: {fmt(Number(sellingPrice) - p.totalPrice)}
+              ({(((Number(sellingPrice) - p.totalPrice) / p.totalPrice) * 100).toFixed(1)}% return)
+            </p>
+          {/if}
         </div>
 
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
