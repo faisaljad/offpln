@@ -67,8 +67,8 @@
                 <option value="fixed">Fixed Amount (AED)</option>
               </select>
               <div class="relative">
-                <input type="number" name="investmentCommission_value" value={gv('investmentCommission').value} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white" />
-                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{t1 === 'fixed' ? 'AED' : '%'}</span>
+                <input type="number" name="investmentCommission_value" value={gv('investmentCommission').value} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-right bg-white" />
+                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{t1 === 'fixed' ? 'AED' : '%'}</span>
               </div>
             </div>
           </div>
