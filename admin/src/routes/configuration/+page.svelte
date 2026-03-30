@@ -67,7 +67,7 @@
                 <option value="fixed">Fixed Amount (AED)</option>
               </select>
               <div class="relative">
-                <input type="number" name="investmentCommission_value" value={gv('investmentCommission').value} step="any" min="0" placeholder={t1 === 'fixed' ? '0 AED' : '0 %'} class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white" />
+                <input type="number" name="investmentCommission_value" value={gv('investmentCommission').value} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white" />
                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{t1 === 'fixed' ? 'AED' : '%'}</span>
               </div>
             </div>
@@ -91,7 +91,7 @@
                 <option value="fixed">Fixed Amount (AED)</option>
               </select>
               <div class="relative">
-                <input type="number" name="soldCommission_value" value={gv('soldCommission').value} step="any" min="0" placeholder={t2 === 'fixed' ? '0 AED' : '0 %'} class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white" />
+                <input type="number" name="soldCommission_value" value={gv('soldCommission').value} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white" />
                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{t2 === 'fixed' ? 'AED' : '%'}</span>
               </div>
             </div>
@@ -115,7 +115,7 @@
                 <option value="fixed">Fixed Amount (AED)</option>
               </select>
               <div class="relative">
-                <input type="number" name="transferCommission_value" value={gv('transferCommission').value} step="any" min="0" placeholder={t3 === 'fixed' ? '0 AED' : '0 %'} class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white" />
+                <input type="number" name="transferCommission_value" value={gv('transferCommission').value} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white" />
                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{t3 === 'fixed' ? 'AED' : '%'}</span>
               </div>
             </div>
@@ -139,7 +139,7 @@
                 <option value="fixed">Fixed Amount (AED)</option>
               </select>
               <div class="relative">
-                <input type="number" name="paymentDelayFee_value" value={gv('paymentDelayFee').value} step="any" min="0" placeholder={t4 === 'fixed' ? '0 AED' : '0 %'} class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white" />
+                <input type="number" name="paymentDelayFee_value" value={gv('paymentDelayFee').value} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white" />
                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{t4 === 'fixed' ? 'AED' : '%'}</span>
               </div>
             </div>
@@ -163,7 +163,7 @@
                 <option value="fixed">Fixed Amount (AED)</option>
               </select>
               <div class="relative">
-                <input type="number" name="paymentDefaultFee_value" value={gv('paymentDefaultFee').value} step="any" min="0" placeholder={t5 === 'fixed' ? '0 AED' : '0 %'} class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white" />
+                <input type="number" name="paymentDefaultFee_value" value={gv('paymentDefaultFee').value} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white" />
                 <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{t5 === 'fixed' ? 'AED' : '%'}</span>
               </div>
             </div>
