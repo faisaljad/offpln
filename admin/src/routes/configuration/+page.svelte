@@ -1,34 +1,33 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
-  import { invalidateAll } from '$app/navigation';
   import { toast } from '$lib/stores/toast';
   import type { PageData, ActionData } from './$types';
 
   export let data: PageData;
   export let form: ActionData;
 
-  $: if (form?.success) {
-    toast.success('Configuration saved');
-    invalidateAll();
-  }
+  $: if (form?.success) toast.success('Configuration saved');
   $: if (form?.error) toast.error(form.error);
 
-  $: s = data.settings ?? {};
-
   function gv(key: string) {
-    const v = (s as any)?.[key];
+    const v = (data.settings as any)?.[key];
     if (v && typeof v === 'object') return { type: v.type || 'percentage', value: String(v.value ?? '') };
     return { type: 'percentage', value: '' };
   }
 
-  let t1 = ''; let t2 = ''; let t3 = ''; let t4 = ''; let t5 = '';
+  // Initialize once from server data
+  let initialized = false;
+  let t1 = 'percentage'; let t2 = 'percentage'; let t3 = 'percentage'; let t4 = 'percentage'; let t5 = 'percentage';
   let v1 = ''; let v2 = ''; let v3 = ''; let v4 = ''; let v5 = '';
 
-  $: { t1 = gv('investmentCommission').type; v1 = gv('investmentCommission').value; }
-  $: { t2 = gv('soldCommission').type; v2 = gv('soldCommission').value; }
-  $: { t3 = gv('transferCommission').type; v3 = gv('transferCommission').value; }
-  $: { t4 = gv('paymentDelayFee').type; v4 = gv('paymentDelayFee').value; }
-  $: { t5 = gv('paymentDefaultFee').type; v5 = gv('paymentDefaultFee').value; }
+  $: if (data.settings && !initialized) {
+    initialized = true;
+    t1 = gv('investmentCommission').type; v1 = gv('investmentCommission').value;
+    t2 = gv('soldCommission').type; v2 = gv('soldCommission').value;
+    t3 = gv('transferCommission').type; v3 = gv('transferCommission').value;
+    t4 = gv('paymentDelayFee').type; v4 = gv('paymentDelayFee').value;
+    t5 = gv('paymentDefaultFee').type; v5 = gv('paymentDefaultFee').value;
+  }
 </script>
 
 <svelte:head>
@@ -41,7 +40,7 @@
     <p class="text-gray-500 text-sm mt-1">Manage commissions, fees, and platform settings</p>
   </div>
 
-  <form method="POST" use:enhance={() => { return async ({ update }) => { await update(); }; }}>
+  <form method="POST" use:enhance={() => { return async ({ update }) => { await update({ reset: false }); }; }}>
     <div class="mb-6">
       <div class="flex items-center gap-3 mb-4">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
