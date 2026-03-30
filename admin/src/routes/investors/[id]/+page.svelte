@@ -26,6 +26,18 @@
   $: approved = investments.filter((i: any) => i.status === 'APPROVED').length;
   $: pending = investments.filter((i: any) => i.status === 'PENDING').length;
 
+  // Sold/closed investment IDs (property sold or transfer completed as seller)
+  $: soldInvIds = new Set([
+    ...payouts.map((p: any) => p.investmentId),
+    ...completedTransfers.filter((t: any) => t.sellerId === u.id).map((t: any) => t.investmentId),
+  ]);
+  $: soldClosedCount = investments.filter((i: any) => soldInvIds.has(i.id)).length;
+  // Total unpaid: only count active (non-sold) investments
+  $: totalUnpaid = investments
+    .filter((i: any) => !soldInvIds.has(i.id))
+    .reduce((s: number, i: any) =>
+      s + (i.payments ?? []).filter((p: any) => p.status !== 'PAID').reduce((ps: number, p: any) => ps + p.amount, 0), 0);
+
   const statusColor: Record<string, string> = {
     PENDING: 'badge-pending', APPROVED: 'badge-approved', REJECTED: 'badge-rejected', COMPLETED: 'badge-active',
   };
@@ -71,7 +83,7 @@
   </div>
 
   <!-- Stats grid -->
-  <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
     <div class="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
       <div class="flex items-center gap-2 mb-2">
         <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center"><span class="text-sm">💼</span></div>
@@ -113,6 +125,20 @@
       </div>
       <p class="text-2xl font-bold text-purple-600">{fmt(transferSalesAmount)}</p>
       <p class="text-xs text-gray-500 mt-1">Market Sales</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 border border-red-100 shadow-sm bg-gradient-to-br from-white to-red-50">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center"><span class="text-sm">⏳</span></div>
+      </div>
+      <p class="text-2xl font-bold text-red-500">{fmt(totalUnpaid)}</p>
+      <p class="text-xs text-gray-500 mt-1">Total Unpaid</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 border border-slate-200 shadow-sm bg-gradient-to-br from-white to-slate-50">
+      <div class="flex items-center gap-2 mb-2">
+        <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center"><span class="text-sm">🔒</span></div>
+      </div>
+      <p class="text-2xl font-bold text-slate-600">{soldClosedCount}</p>
+      <p class="text-xs text-gray-500 mt-1">Sold / Closed</p>
     </div>
   </div>
 
