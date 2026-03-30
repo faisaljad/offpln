@@ -21,6 +21,8 @@ export class SettingsService {
     supportPhone?: string; supportEmail?: string; supportWhatsapp?: string;
     supportAddress?: string; supportWorkingHours?: string; supportWebsite?: string;
     aboutUs?: string; privacyPolicy?: string;
+    investmentCommission?: any; soldCommission?: any; transferCommission?: any;
+    paymentDelayFee?: any; paymentDefaultFee?: any;
   }) {
     return this.prisma.appSettings.upsert({
       where: { id: 'singleton' },

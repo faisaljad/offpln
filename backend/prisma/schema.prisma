@@ -209,6 +209,14 @@ model AppSettings {
   supportWebsite         String   @default("")
   aboutUs                String   @default("")
   privacyPolicy          String   @default("")
+
+  // Commissions config (JSON: { type: 'percentage'|'fixed', value: number })
+  investmentCommission        Json?
+  soldCommission              Json?
+  transferCommission          Json?
+  paymentDelayFee             Json?
+  paymentDefaultFee           Json?
+
   updatedAt              DateTime @updatedAt
 }
 

@@ -15,6 +15,7 @@
     { href: '/payments', label: 'Payment Reviews', icon: '💳', perm: 'payments' },
     { href: '/payouts', label: 'Payouts', icon: '💰', perm: 'payouts' },
     { href: '/notifications', label: 'Notifications', icon: '🔔', perm: 'notifications' },
+    { href: '/configuration', label: 'Configuration', icon: '⚡', perm: 'settings' },
     { href: '/settings', label: 'Settings', icon: '⚙️', perm: 'settings' },
   ];
 
