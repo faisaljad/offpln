@@ -22,11 +22,13 @@
   }
 
   let t1 = ''; let t2 = ''; let t3 = ''; let t4 = ''; let t5 = '';
-  $: t1 = t1 || gv('investmentCommission').type;
-  $: t2 = t2 || gv('soldCommission').type;
-  $: t3 = t3 || gv('transferCommission').type;
-  $: t4 = t4 || gv('paymentDelayFee').type;
-  $: t5 = t5 || gv('paymentDefaultFee').type;
+  let v1 = ''; let v2 = ''; let v3 = ''; let v4 = ''; let v5 = '';
+
+  $: { t1 = gv('investmentCommission').type; v1 = gv('investmentCommission').value; }
+  $: { t2 = gv('soldCommission').type; v2 = gv('soldCommission').value; }
+  $: { t3 = gv('transferCommission').type; v3 = gv('transferCommission').value; }
+  $: { t4 = gv('paymentDelayFee').type; v4 = gv('paymentDelayFee').value; }
+  $: { t5 = gv('paymentDefaultFee').type; v5 = gv('paymentDefaultFee').value; }
 </script>
 
 <svelte:head>
@@ -67,13 +69,13 @@
                 <option value="fixed">Fixed Amount (AED)</option>
               </select>
               <div class="relative">
-                <input type="number" name="investmentCommission_value" value={gv('investmentCommission').value} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-right bg-white" />
+                <input type="number" name="investmentCommission_value" bind:value={v1} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-right bg-white" />
                 <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{t1 === 'fixed' ? 'AED' : '%'}</span>
               </div>
             </div>
           </div>
-          {#if gv('investmentCommission').value}
-            <div class="px-5 pb-3"><span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-blue-50 text-blue-600">Active: {gv('investmentCommission').value}{t1 === 'percentage' ? '%' : ' AED'} per transaction</span></div>
+          {#if v1}
+            <div class="px-5 pb-3"><span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-blue-50 text-blue-600">Active: {v1}{t1 === 'percentage' ? '%' : ' AED'} per transaction</span></div>
           {/if}
         </div>
 
@@ -91,13 +93,13 @@
                 <option value="fixed">Fixed Amount (AED)</option>
               </select>
               <div class="relative">
-                <input type="number" name="soldCommission_value" value={gv('soldCommission').value} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-right bg-white" />
+                <input type="number" name="soldCommission_value" bind:value={v2} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-right bg-white" />
                 <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{t2 === 'fixed' ? 'AED' : '%'}</span>
               </div>
             </div>
           </div>
-          {#if gv('soldCommission').value}
-            <div class="px-5 pb-3"><span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-emerald-50 text-emerald-600">Active: {gv('soldCommission').value}{t2 === 'percentage' ? '%' : ' AED'} per transaction</span></div>
+          {#if v2}
+            <div class="px-5 pb-3"><span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-emerald-50 text-emerald-600">Active: {v2}{t2 === 'percentage' ? '%' : ' AED'} per transaction</span></div>
           {/if}
         </div>
 
@@ -115,13 +117,13 @@
                 <option value="fixed">Fixed Amount (AED)</option>
               </select>
               <div class="relative">
-                <input type="number" name="transferCommission_value" value={gv('transferCommission').value} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-right bg-white" />
+                <input type="number" name="transferCommission_value" bind:value={v3} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-right bg-white" />
                 <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{t3 === 'fixed' ? 'AED' : '%'}</span>
               </div>
             </div>
           </div>
-          {#if gv('transferCommission').value}
-            <div class="px-5 pb-3"><span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-purple-50 text-purple-600">Active: {gv('transferCommission').value}{t3 === 'percentage' ? '%' : ' AED'} per transaction</span></div>
+          {#if v3}
+            <div class="px-5 pb-3"><span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-purple-50 text-purple-600">Active: {v3}{t3 === 'percentage' ? '%' : ' AED'} per transaction</span></div>
           {/if}
         </div>
 
@@ -139,13 +141,13 @@
                 <option value="fixed">Fixed Amount (AED)</option>
               </select>
               <div class="relative">
-                <input type="number" name="paymentDelayFee_value" value={gv('paymentDelayFee').value} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-right bg-white" />
+                <input type="number" name="paymentDelayFee_value" bind:value={v4} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-right bg-white" />
                 <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{t4 === 'fixed' ? 'AED' : '%'}</span>
               </div>
             </div>
           </div>
-          {#if gv('paymentDelayFee').value}
-            <div class="px-5 pb-3"><span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-amber-50 text-amber-600">Active: {gv('paymentDelayFee').value}{t4 === 'percentage' ? '%' : ' AED'} per transaction</span></div>
+          {#if v4}
+            <div class="px-5 pb-3"><span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-amber-50 text-amber-600">Active: {v4}{t4 === 'percentage' ? '%' : ' AED'} per transaction</span></div>
           {/if}
         </div>
 
@@ -163,13 +165,13 @@
                 <option value="fixed">Fixed Amount (AED)</option>
               </select>
               <div class="relative">
-                <input type="number" name="paymentDefaultFee_value" value={gv('paymentDefaultFee').value} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-right bg-white" />
+                <input type="number" name="paymentDefaultFee_value" bind:value={v5} step="any" min="0" placeholder="0" class="w-28 border border-gray-200 rounded-lg ps-3 pe-8 py-2 text-sm text-right bg-white" />
                 <span class="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">{t5 === 'fixed' ? 'AED' : '%'}</span>
               </div>
             </div>
           </div>
-          {#if gv('paymentDefaultFee').value}
-            <div class="px-5 pb-3"><span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-red-50 text-red-600">Active: {gv('paymentDefaultFee').value}{t5 === 'percentage' ? '%' : ' AED'} per transaction</span></div>
+          {#if v5}
+            <div class="px-5 pb-3"><span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-red-50 text-red-600">Active: {v5}{t5 === 'percentage' ? '%' : ' AED'} per transaction</span></div>
           {/if}
         </div>
 
