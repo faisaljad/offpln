@@ -113,6 +113,15 @@ export default function LoginScreen() {
   }
 
   function handleOtpChange(text: string, index: number) {
+    // Handle paste of full code
+    if (text.length > 1) {
+      const digits = text.replace(/\D/g, '').slice(0, 6).split('');
+      const newOtp = ['', '', '', '', '', ''];
+      digits.forEach((d, i) => { newOtp[i] = d; });
+      setOtp(newOtp);
+      otpRefs.current[Math.min(digits.length, 5)]?.focus();
+      return;
+    }
     const newOtp = [...otp];
     newOtp[index] = text;
     setOtp(newOtp);

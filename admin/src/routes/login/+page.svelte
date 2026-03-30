@@ -13,10 +13,28 @@
   function handleOtpInput(index: number, event: Event) {
     const input = event.target as HTMLInputElement;
     const value = input.value;
+    // Handle paste of full code
+    if (value.length > 1) {
+      const digits = value.replace(/\D/g, '').slice(0, 6).split('');
+      digits.forEach((d, i) => { otpValues[i] = d; });
+      otpValues = [...otpValues];
+      otpInputs[Math.min(digits.length, 5)]?.focus();
+      return;
+    }
     otpValues[index] = value;
     otpValues = [...otpValues];
     if (value && index < 5) {
       otpInputs[index + 1]?.focus();
+    }
+  }
+
+  function handleOtpPaste(event: ClipboardEvent) {
+    const pasted = event.clipboardData?.getData('text')?.replace(/\D/g, '').slice(0, 6);
+    if (pasted && pasted.length > 0) {
+      event.preventDefault();
+      pasted.split('').forEach((d, i) => { otpValues[i] = d; });
+      otpValues = [...otpValues];
+      otpInputs[Math.min(pasted.length, 5)]?.focus();
     }
   }
 
@@ -146,6 +164,7 @@
                 value={val}
                 oninput={(e) => handleOtpInput(i, e)}
                 onkeydown={(e) => handleOtpKeydown(i, e)}
+                onpaste={(e) => handleOtpPaste(e)}
                 class="w-12 h-14 text-center text-xl font-bold border-2 rounded-xl focus:border-primary-500 focus:ring-2 focus:ring-primary-100 outline-none transition-all {val ? 'border-primary-400 bg-primary-50' : 'border-gray-200 bg-gray-50'}"
               />
             {/each}
