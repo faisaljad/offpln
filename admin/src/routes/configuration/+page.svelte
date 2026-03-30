@@ -107,61 +107,51 @@
       </div>
 
       <div class="space-y-4">
-        {#each commissionFields as field (field.key)}
-          <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden" style="border-color: var(--border-{field.color}, #f1f5f9)">
-            <div class="flex items-start gap-4 p-5">
-              <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0"
-                class:bg-blue-100={field.color === 'blue'}
-                class:bg-emerald-100={field.color === 'emerald'}
-                class:bg-purple-100={field.color === 'purple'}
-                class:bg-amber-100={field.color === 'amber'}
-                class:bg-red-100={field.color === 'red'}
-              >
-                {field.icon}
-              </div>
-              <div class="flex-1 min-w-0">
-                <h3 class="font-semibold text-gray-900 text-sm">{field.label}</h3>
-                <p class="text-xs text-gray-500 mt-0.5">{field.description}</p>
-              </div>
-              <div class="flex items-center gap-3 shrink-0">
-                <select
-                  name="{field.key}_type"
-                  bind:value={types[field.key]}
-                  class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
-                >
-                  <option value="percentage">Percentage (%)</option>
-                  <option value="fixed">Fixed Amount (AED)</option>
-                </select>
-                <div class="relative">
-                  <input
-                    type="number"
-                    name="{field.key}_value"
-                    value={getVal(field.key).value}
-                    step="any"
-                    min="0"
-                    placeholder={types[field.key] === 'fixed' ? '0 AED' : '0 %'}
-                    class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
-                  />
-                  <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
-                    {types[field.key] === 'fixed' ? 'AED' : '%'}
-                  </span>
+        {#each commissionFields as item, idx}
+          {#if item}
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <div class="flex items-start gap-4 p-5">
+                <div class="w-12 h-12 rounded-xl bg-gray-100 flex items-center justify-center text-xl shrink-0">
+                  {item.icon}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3 class="font-semibold text-gray-900 text-sm">{item.label}</h3>
+                  <p class="text-xs text-gray-500 mt-0.5">{item.description}</p>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  <select
+                    name={item.key + '_type'}
+                    bind:value={types[item.key]}
+                    class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
+                  >
+                    <option value="percentage">Percentage (%)</option>
+                    <option value="fixed">Fixed Amount (AED)</option>
+                  </select>
+                  <div class="relative">
+                    <input
+                      type="number"
+                      name={item.key + '_value'}
+                      value={getVal(item.key).value}
+                      step="any"
+                      min="0"
+                      placeholder={types[item.key] === 'fixed' ? '0 AED' : '0 %'}
+                      class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
+                    />
+                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
+                      {types[item.key] === 'fixed' ? 'AED' : '%'}
+                    </span>
+                  </div>
                 </div>
               </div>
+              {#if getVal(item.key).value}
+                <div class="px-5 pb-3 pt-0">
+                  <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-blue-50 text-blue-600">
+                    Active: {getVal(item.key).value}{types[item.key] === 'percentage' ? '%' : ' AED'} per transaction
+                  </span>
+                </div>
+              {/if}
             </div>
-            {#if getVal(field.key).value}
-              <div class="px-5 pb-3 pt-0">
-                <span class="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full"
-                  class:bg-blue-50={field.color === 'blue'} class:text-blue-600={field.color === 'blue'}
-                  class:bg-emerald-50={field.color === 'emerald'} class:text-emerald-600={field.color === 'emerald'}
-                  class:bg-purple-50={field.color === 'purple'} class:text-purple-600={field.color === 'purple'}
-                  class:bg-amber-50={field.color === 'amber'} class:text-amber-600={field.color === 'amber'}
-                  class:bg-red-50={field.color === 'red'} class:text-red-600={field.color === 'red'}
-                >
-                  Active: {getVal(field.key).value}{types[field.key] === 'percentage' ? '%' : ' AED'} per transaction
-                </span>
-              </div>
-            {/if}
-          </div>
+          {/if}
         {/each}
       </div>
     </div>
