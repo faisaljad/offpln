@@ -255,7 +255,7 @@
         </div>
         <div>
           <label class="label" for="totalPrice">Total Price (AED) *</label>
-          <input id="totalPrice" name="totalPrice" type="number" class="input" required min="1" value={calculatedTotal || form?.values?.totalPrice || ''} readonly class:bg-gray-50={!!commission} class:cursor-not-allowed={!!commission} />
+          <input id="totalPrice" name="totalPrice" type="number" class="input" required min="1" value={calculatedTotal || form?.values?.totalPrice || ''} />
           {#if commission && Number(originalPrice) > 0}
             <p class="text-xs text-gray-500 mt-1">
               Original {originalPrice} + Commission {commissionAmount.toLocaleString('en')} ({commission.type === 'percentage' ? commission.value + '%' : 'AED ' + commission.value})
