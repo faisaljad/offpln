@@ -17,6 +17,12 @@
   $: p = data.property;
   $: soldPct = ((p.totalShares - p.availableShares) / p.totalShares) * 100;
 
+  // Total paid/unpaid across all investors
+  $: totalPaidByInvestors = (data.investments ?? []).reduce((s: number, inv: any) =>
+    s + (inv.payments ?? []).filter((pay: any) => pay.status === 'PAID').reduce((ps: number, pay: any) => ps + pay.amount, 0), 0);
+  $: totalUnpaidByInvestors = (data.investments ?? []).reduce((s: number, inv: any) =>
+    s + (inv.payments ?? []).filter((pay: any) => pay.status !== 'PAID').reduce((ps: number, pay: any) => ps + pay.amount, 0), 0);
+
   // Payment plan tabs
   $: paymentPlanNames = [
     ...(p.paymentPlan?.downPayment ? ['Down Payment'] : []),
@@ -120,9 +126,9 @@
           <p class="text-sm text-emerald-600">This property has been sold and ROI payouts have been created.</p>
         </div>
       </div>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-3">
         <div class="bg-white rounded-lg p-4 text-center">
-          <p class="text-xs text-gray-500 mb-1">Original Price</p>
+          <p class="text-xs text-gray-500 mb-1">Total Price</p>
           <p class="text-lg font-bold text-gray-900">{fmt(p.totalPrice)}</p>
         </div>
         <div class="bg-white rounded-lg p-4 text-center">
@@ -130,16 +136,26 @@
           <p class="text-lg font-bold text-emerald-700">{fmt(p.soldPrice)}</p>
         </div>
         <div class="bg-white rounded-lg p-4 text-center">
-          <p class="text-xs text-gray-500 mb-1">Gain</p>
-          <p class="text-lg font-bold {p.soldPrice >= p.totalPrice ? 'text-emerald-700' : 'text-red-600'}">
-            {fmt(p.soldPrice - p.totalPrice)}
+          <p class="text-xs text-gray-500 mb-1">Total Paid by Investors</p>
+          <p class="text-lg font-bold text-blue-600">{fmt(totalPaidByInvestors)}</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <div class="bg-white rounded-lg p-4 text-center">
+          <p class="text-xs text-gray-500 mb-1">Profit (vs Paid)</p>
+          <p class="text-lg font-bold {p.soldPrice >= totalPaidByInvestors ? 'text-emerald-700' : 'text-red-600'}">
+            {fmt(p.soldPrice - totalPaidByInvestors)}
           </p>
         </div>
         <div class="bg-white rounded-lg p-4 text-center">
-          <p class="text-xs text-gray-500 mb-1">Profit Rate</p>
-          <p class="text-lg font-bold {p.soldPrice >= p.totalPrice ? 'text-emerald-700' : 'text-red-600'}">
-            {(((p.soldPrice - p.totalPrice) / p.totalPrice) * 100).toFixed(1)}%
+          <p class="text-xs text-gray-500 mb-1">ROI (vs Paid)</p>
+          <p class="text-lg font-bold {p.soldPrice >= totalPaidByInvestors ? 'text-emerald-700' : 'text-red-600'}">
+            {totalPaidByInvestors > 0 ? (((p.soldPrice - totalPaidByInvestors) / totalPaidByInvestors) * 100).toFixed(1) : '0'}%
           </p>
+        </div>
+        <div class="bg-white rounded-lg p-4 text-center">
+          <p class="text-xs text-gray-500 mb-1">Total Unpaid</p>
+          <p class="text-lg font-bold text-amber-600">{fmt(totalUnpaidByInvestors)}</p>
         </div>
       </div>
     </div>
@@ -395,6 +411,9 @@
           { label: 'Listed',               value: fmtDate(p.createdAt) },
           ...(p.soldPrice ? [{ label: 'Sold For', value: fmt(p.soldPrice) }] : []),
           ...(p.originalSellingPrice ? [{ label: 'Original Selling Price', value: fmt(p.originalSellingPrice) }] : []),
+          { label: 'Total Paid by Investors', value: fmt(totalPaidByInvestors) },
+          { label: 'Total Unpaid', value: fmt(totalUnpaidByInvestors) },
+          ...(p.originalSellingPrice ? [{ label: 'Original Selling Price', value: fmt(p.originalSellingPrice) }] : []),
         ] as row}
           <div class="flex justify-between text-sm border-b border-gray-50 pb-3">
             <span class="text-gray-500">{row.label}</span>
@@ -428,12 +447,16 @@
 
       <form method="POST" action="?/setSold" use:enhance class="p-6 space-y-5">
         <!-- Property summary -->
-        <div class="bg-gray-50 rounded-xl p-4 space-y-1">
+        <div class="bg-gray-50 rounded-xl p-4 space-y-2">
           <p class="font-semibold text-gray-900">{p.title}</p>
           <p class="text-sm text-gray-500">{p.location}</p>
-          <div class="flex gap-4 mt-2 text-sm">
-            <span class="text-gray-500">Original price: <strong class="text-gray-800">{fmt(p.totalPrice)}</strong></span>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm">
+            <span class="text-gray-500">Total Price: <strong class="text-gray-800">{fmt(p.totalPrice)}</strong></span>
             <span class="text-gray-500">ROI: <strong class="text-gray-800">{p.roi}%</strong></span>
+          </div>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            <span class="text-gray-500">Total Paid: <strong class="text-blue-600">{fmt(totalPaidByInvestors)}</strong></span>
+            <span class="text-gray-500">Total Unpaid: <strong class="text-amber-600">{fmt(totalUnpaidByInvestors)}</strong></span>
           </div>
         </div>
 
