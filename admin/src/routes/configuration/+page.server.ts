@@ -42,7 +42,7 @@ export const actions: Actions = {
     }
 
     try {
-      await apiFetch('/admin/settings', {
+      await apiFetch('/settings', {
         method: 'PUT',
         body: JSON.stringify(commissions),
         token,
