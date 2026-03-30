@@ -66,6 +66,14 @@
     if (v && typeof v === 'object') return { type: v.type || 'percentage', value: String(v.value ?? '') };
     return { type: 'percentage', value: '' };
   }
+
+  // Reactive state for each commission type selector
+  let types: Record<string, string> = {};
+  $: {
+    for (const f of commissionFields) {
+      if (!(f.key in types)) types[f.key] = getVal(f.key).type;
+    }
+  }
 </script>
 
 <svelte:head>
@@ -112,7 +120,7 @@
               <div class="flex items-center gap-3 shrink-0">
                 <select
                   name="{field.key}_type"
-                  value={val.type}
+                  bind:value={types[field.key]}
                   class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50 focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
                 >
                   <option value="percentage">Percentage (%)</option>
@@ -125,11 +133,11 @@
                     value={val.value}
                     step="any"
                     min="0"
-                    placeholder="0"
+                    placeholder={types[field.key] === 'fixed' ? '0 AED' : '0 %'}
                     class="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-right bg-white focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200"
                   />
                   <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
-                    {val.type === 'fixed' ? 'AED' : '%'}
+                    {types[field.key] === 'fixed' ? 'AED' : '%'}
                   </span>
                 </div>
               </div>
@@ -139,7 +147,7 @@
                 <div class="inline-flex items-center gap-1.5 {c.bg} px-3 py-1 rounded-full">
                   <span class="w-1.5 h-1.5 rounded-full {c.iconBg}"></span>
                   <span class="text-xs font-medium {c.text}">
-                    Active: {val.value}{val.type === 'percentage' ? '%' : ' AED'} per transaction
+                    Active: {val.value}{types[field.key] === 'percentage' ? '%' : ' AED'} per transaction
                   </span>
                 </div>
               </div>
