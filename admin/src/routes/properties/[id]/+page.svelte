@@ -501,8 +501,8 @@
           {/if}
           {#if sellingPrice && Number(sellingPrice) > 0}
             <p class="text-xs text-emerald-600 mt-1">
-              Gain: {fmt(Number(sellingPrice) - p.totalPrice)}
-              ({(((Number(sellingPrice) - p.totalPrice) / p.totalPrice) * 100).toFixed(1)}% return)
+              Gain: {fmt(Number(sellingPrice) - totalPaidByInvestors)}
+              ({totalPaidByInvestors > 0 ? (((Number(sellingPrice) - totalPaidByInvestors) / totalPaidByInvestors) * 100).toFixed(1) : '0'}% return)
             </p>
           {/if}
         </div>
