@@ -190,6 +190,22 @@ export default function InvestmentDetailScreen() {
             </View>
           </View>
 
+          <View style={styles.paidUnpaidRow}>
+            <View style={styles.paidUnpaidItem}>
+              <Text style={styles.paidUnpaidLabel}>Paid</Text>
+              <Text style={styles.paidUnpaidValue}>{formatCurrency(
+                (investment.payments ?? []).filter((p: any) => p.status === 'PAID').reduce((s: number, p: any) => s + p.amount, 0)
+              )}</Text>
+            </View>
+            <View style={styles.paidUnpaidDivider} />
+            <View style={styles.paidUnpaidItem}>
+              <Text style={styles.paidUnpaidLabel}>Unpaid</Text>
+              <Text style={[styles.paidUnpaidValue, { color: '#fbbf24' }]}>{formatCurrency(
+                (investment.payments ?? []).filter((p: any) => p.status !== 'PAID').reduce((s: number, p: any) => s + p.amount, 0)
+              )}</Text>
+            </View>
+          </View>
+
           <Text style={styles.dateText}>Invested on {formatDate(investment.createdAt)}</Text>
         </LinearGradient>
       </View>
@@ -666,6 +682,19 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 10, color: 'rgba(255,255,255,0.5)', marginTop: 3, letterSpacing: 0.3 },
   statDivider: { width: 1, height: 32, backgroundColor: 'rgba(255,255,255,0.12)' },
   dateText: { color: 'rgba(255,255,255,0.5)', fontSize: 12, textAlign: 'center', letterSpacing: 0.2 },
+  paidUnpaidRow: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    marginTop: 14,
+    marginBottom: 4,
+    padding: 12,
+    alignItems: 'center',
+  },
+  paidUnpaidItem: { flex: 1, alignItems: 'center' },
+  paidUnpaidDivider: { width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.15)' },
+  paidUnpaidLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 11, fontWeight: '500', marginBottom: 2 },
+  paidUnpaidValue: { color: '#fff', fontSize: 15, fontWeight: '700' },
 
   card: {
     backgroundColor: '#fff', borderRadius: 20, marginHorizontal: 20, marginTop: 16,
