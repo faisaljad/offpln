@@ -298,9 +298,7 @@ export default function InvestmentDetailScreen() {
                 {payment.dueDate && (
                   <Text style={styles.paymentDue}>Due: {formatDate(payment.dueDate)}</Text>
                 )}
-                {payment.milestone && (
-                  <Text style={styles.paymentDue}>On: {payment.milestone}</Text>
-                )}
+                
                 {payment.paidAt && (
                   <Text style={[styles.paymentDue, { color: '#059669' }]}>Paid: {formatDate(payment.paidAt)}</Text>
                 )}
@@ -321,9 +319,7 @@ export default function InvestmentDetailScreen() {
               <View style={styles.paymentRight}>
                 <Text style={[styles.paymentAmount, isSoldUnpaid && { color: '#94a3b8', textDecorationLine: 'line-through' }]}>{formatCurrency(payment.amount)}</Text>
                 {isSoldUnpaid ? (
-                  <View style={[styles.paymentBadge, { backgroundColor: '#f1f5f9' }]}>
-                    <Text style={[styles.paymentBadgeText, { color: '#94a3b8' }]}>NOT REQUIRED</Text>
-                  </View>
+                 <></>
                 ) : (
                   <View style={[styles.paymentBadge, { backgroundColor: pc.bg }]}>
                     <Text style={[styles.paymentBadgeText, { color: pc.text }]}>

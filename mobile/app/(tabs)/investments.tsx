@@ -97,7 +97,10 @@ export default function InvestmentsScreen() {
   const soldInvestments = investments.filter(i => i.property.status === 'SOLD');
   const filteredInvestments = activeTab === 'active' ? activeInvestments : soldInvestments;
 
-  const totalInvested = investments.reduce((sum, inv) => sum + inv.totalAmount, 0);
+  const totalPaid = investments.reduce((sum, inv) =>
+    sum + (inv.payments ?? []).filter((p: any) => p.status === 'PAID').reduce((s: number, p: any) => s + p.amount, 0), 0);
+  const totalUnpaid = activeInvestments.reduce((sum, inv) =>
+    sum + (inv.payments ?? []).filter((p: any) => p.status !== 'PAID' && p.status !== 'WAIVED').reduce((s: number, p: any) => s + p.amount, 0), 0);
   const totalPayoutValue = investments.reduce((sum, inv) => sum + (inv.payout?.totalReturn || 0), 0);
 
   function renderHeader() {
@@ -111,8 +114,14 @@ export default function InvestmentsScreen() {
         <View style={styles.decorCircle1} />
         <View style={styles.decorCircle2} />
 
-        <Text style={styles.portfolioLabel}>Portfolio Value</Text>
-        <Text style={styles.portfolioValue}>{formatCurrency(totalInvested)}</Text>
+        <Text style={styles.portfolioLabel}>Total Paid</Text>
+        <Text style={styles.portfolioValue}>{formatCurrency(totalPaid)}</Text>
+        {totalUnpaid > 0 && (
+          <>
+            <Text style={[styles.portfolioLabel, { marginTop: 12 }]}>Total Unpaid</Text>
+            <Text style={styles.portfolioValue}>{formatCurrency(totalUnpaid)}</Text>
+          </>
+        )}
         {totalPayoutValue > 0 && (
           <>
             <Text style={[styles.portfolioLabel, { marginTop: 12 }]}>Total Payouts</Text>
