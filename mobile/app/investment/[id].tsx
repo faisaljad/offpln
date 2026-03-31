@@ -30,6 +30,7 @@ const PAYMENT_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   UNDER_REVIEW: { bg: '#dbeafe', text: '#2563eb' },
   PAID:         { bg: '#d1fae5', text: '#059669' },
   OVERDUE:      { bg: '#fee2e2', text: '#dc2626' },
+  WAIVED:       { bg: '#f1f5f9', text: '#94a3b8' },
 };
 
 export default function InvestmentDetailScreen() {
@@ -150,8 +151,9 @@ export default function InvestmentDetailScreen() {
   const statusColor = isSold
     ? { bg: '#d1fae5', text: '#059669', gradient: ['#059669', '#047857'] as [string, string] }
     : STATUS_COLORS[investment.status] ?? { bg: '#f3f4f6', text: '#6b7280', gradient: ['#9ca3af', '#6b7280'] as [string, string] };
-  const paidCount = investment.payments?.filter((p: any) => p.status === 'PAID').length || 0;
-  const totalPayments = investment.payments?.length || 1;
+  const activePayments = (investment.payments ?? []).filter((p: any) => p.status !== 'WAIVED');
+  const paidCount = activePayments.filter((p: any) => p.status === 'PAID').length;
+  const totalPayments = activePayments.length || 1;
   const progressPct = Math.round((paidCount / totalPayments) * 100);
 
   return (
@@ -253,13 +255,15 @@ export default function InvestmentDetailScreen() {
             true
           );
           const isDownPayment = payment.name === 'Down Payment';
+          const isWaived = payment.status === 'WAIVED';
           const enabled = isDownPayment || isEnabled;
           return (
-            <View key={payment.id ?? i} style={[styles.paymentItem, i > 0 && styles.paymentItemBorder, !enabled && { opacity: 0.4 }]}>
+            <View key={payment.id ?? i} style={[styles.paymentItem, i > 0 && styles.paymentItemBorder, (isWaived || !enabled) && { opacity: 0.4 }]}>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={styles.paymentName}>{payment.name}</Text>
-                  {!enabled && <Text style={{ fontSize: 10, color: '#94a3b8' }}>🔒 Not due yet</Text>}
+                  <Text style={[styles.paymentName, isWaived && { textDecorationLine: 'line-through', color: '#94a3b8' }]}>{payment.name}</Text>
+                  {isWaived && <Text style={{ fontSize: 10, color: '#94a3b8' }}>✓ Waived — property sold</Text>}
+                  {!isWaived && !enabled && <Text style={{ fontSize: 10, color: '#94a3b8' }}>🔒 Not due yet</Text>}
                 </View>
                 {payment.dueDate && (
                   <Text style={styles.paymentDue}>Due: {formatDate(payment.dueDate)}</Text>
@@ -291,7 +295,7 @@ export default function InvestmentDetailScreen() {
                     {payment.status === 'UNDER_REVIEW' ? 'REVIEW' : payment.status}
                   </Text>
                 </View>
-                {(payment.status === 'PENDING' || payment.status === 'OVERDUE') && enabled && (
+                {(payment.status === 'PENDING' || payment.status === 'OVERDUE') && enabled && !isWaived && (
                   <TouchableOpacity
                     style={styles.uploadProofBtn}
                     onPress={() => { setProofPayment(payment); setProofModal(true); }}

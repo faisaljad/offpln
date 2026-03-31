@@ -263,18 +263,20 @@
                   {#each data.investments as inv}
                     {@const payment = (inv.payments ?? []).find((pay) => pay.name === selectedPlanTab)}
                     {#if payment}
-                      <tr class="border-b border-gray-50 hover:bg-gray-50">
+                      <tr class="border-b border-gray-50 {payment.status === 'WAIVED' ? 'opacity-40' : 'hover:bg-gray-50'}">
                         <td class="py-2 px-3">
-                          <div class="font-medium text-gray-900">{inv.user.name}</div>
+                          <div class="font-medium {payment.status === 'WAIVED' ? 'text-gray-400 line-through' : 'text-gray-900'}">{inv.user.name}</div>
                           <div class="text-gray-400 text-xs">{inv.user.email}</div>
                         </td>
-                        <td class="py-2 px-3 font-medium">{fmt(payment.amount)}</td>
+                        <td class="py-2 px-3 font-medium {payment.status === 'WAIVED' ? 'text-gray-400 line-through' : ''}">{fmt(payment.amount)}</td>
                         <td class="py-2 px-3 text-gray-500 text-xs">
                           {payment.dueDate ? fmtDate(payment.dueDate) : '—'}
                         </td>
                         <td class="py-2 px-3">
                           {#if payment.status === 'PAID'}
-                            <span class="badge-approved">{payment.status}</span>
+                            <span class="badge-approved">PAID</span>
+                          {:else if payment.status === 'WAIVED'}
+                            <span class="text-xs font-medium text-gray-400 bg-gray-100 px-2 py-1 rounded-full">WAIVED</span>
                           {:else if payment.status === 'OVERDUE'}
                             <span class="badge-rejected">{payment.status}</span>
                           {:else if payment.status === 'UNDER_REVIEW'}
@@ -307,16 +309,23 @@
             <!-- Summary -->
             {#if data.investments.length > 0}
               {@const tabPayments = data.investments.map((inv) => (inv.payments ?? []).find((pay) => pay.name === selectedPlanTab)).filter((x) => !!x)}
-              <div class="flex gap-4 mt-4 pt-3 border-t border-gray-100 text-sm">
+              {@const activeTabPayments = tabPayments.filter((p) => p.status !== 'WAIVED')}
+              {@const waivedCount = tabPayments.filter((p) => p.status === 'WAIVED').length}
+              <div class="flex flex-wrap gap-4 mt-4 pt-3 border-t border-gray-100 text-sm">
                 <span class="text-gray-500">
-                  Paid: <strong class="text-emerald-600">{tabPayments.filter((p) => p.status === 'PAID').length}/{tabPayments.length}</strong>
+                  Paid: <strong class="text-emerald-600">{activeTabPayments.filter((p) => p.status === 'PAID').length}/{activeTabPayments.length}</strong>
                 </span>
                 <span class="text-gray-500">
-                  Collected: <strong class="text-gray-900">{fmt(tabPayments.filter((p) => p.status === 'PAID').reduce((s, p) => s + (p.amount ?? 0), 0))}</strong>
+                  Collected: <strong class="text-gray-900">{fmt(activeTabPayments.filter((p) => p.status === 'PAID').reduce((s, p) => s + (p.amount ?? 0), 0))}</strong>
                 </span>
                 <span class="text-gray-500">
-                  Pending: <strong class="text-amber-600">{fmt(tabPayments.filter((p) => p.status !== 'PAID').reduce((s, p) => s + (p.amount ?? 0), 0))}</strong>
+                  Pending: <strong class="text-amber-600">{fmt(activeTabPayments.filter((p) => p.status !== 'PAID').reduce((s, p) => s + (p.amount ?? 0), 0))}</strong>
                 </span>
+                {#if waivedCount > 0}
+                  <span class="text-gray-400">
+                    Waived: <strong>{waivedCount}</strong>
+                  </span>
+                {/if}
               </div>
             {/if}
           {/if}
