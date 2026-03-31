@@ -2,7 +2,6 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
-  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
@@ -37,9 +36,8 @@ export class AuthService {
     if (existing) throw new ConflictException('Email already registered');
 
     // Invalidate old OTPs
-    await this.prisma.otpCode.updateMany({
-      where: { target: email, channel: 'register', used: false },
-      data: { used: true },
+    await this.prisma.otpCode.deleteMany({
+      where: { target: email, channel: 'register' },
     });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -61,7 +59,9 @@ export class AuthService {
     });
     if (!otp) throw new UnauthorizedException('Invalid or expired verification code');
 
-    await this.prisma.otpCode.update({ where: { id: otp.id }, data: { used: true } });
+    await this.prisma.otpCode.deleteMany({
+      where: { OR: [{ id: otp.id }, { target: dto.email, channel: 'register' }, { expiresAt: { lt: new Date() } }] },
+    });
 
     const existing = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (existing) throw new ConflictException('Email already registered');
@@ -121,9 +121,8 @@ export class AuthService {
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 min
 
     // Invalidate old OTPs
-    await this.prisma.otpCode.updateMany({
-      where: { target: user.email, channel: 'login', used: false },
-      data: { used: true },
+    await this.prisma.otpCode.deleteMany({
+      where: { target: user.email, channel: 'login' },
     });
 
     await this.prisma.otpCode.create({
@@ -142,7 +141,9 @@ export class AuthService {
     });
     if (!otp) throw new UnauthorizedException('Invalid or expired OTP');
 
-    await this.prisma.otpCode.update({ where: { id: otp.id }, data: { used: true } });
+    await this.prisma.otpCode.deleteMany({
+      where: { OR: [{ id: otp.id }, { target: email, channel: 'login' }, { expiresAt: { lt: new Date() } }] },
+    });
 
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) throw new UnauthorizedException('User not found');
@@ -229,9 +230,8 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) throw new UnauthorizedException('No account found with this email');
 
-    await this.prisma.otpCode.updateMany({
-      where: { target: email, channel: 'reset', used: false },
-      data: { used: true },
+    await this.prisma.otpCode.deleteMany({
+      where: { target: email, channel: 'reset' },
     });
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -272,7 +272,9 @@ export class AuthService {
     });
     if (!otp) throw new UnauthorizedException('Invalid or expired code');
 
-    await this.prisma.otpCode.update({ where: { id: otp.id }, data: { used: true } });
+    await this.prisma.otpCode.deleteMany({
+      where: { OR: [{ id: otp.id }, { target: email, channel: 'reset' }, { expiresAt: { lt: new Date() } }] },
+    });
 
     const hashed = await bcrypt.hash(newPassword, 12);
     await this.prisma.user.update({ where: { email }, data: { password: hashed } });

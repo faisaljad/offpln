@@ -173,6 +173,9 @@ export class TransfersService {
         where: { id: transferId },
         data: { status: 'COMPLETED', otpCode: null },
       }),
+      this.prisma.otpCode.deleteMany({
+        where: { OR: [{ target: (transfer as any).seller?.email ?? '', channel: 'transfer' }, { expiresAt: { lt: new Date() } }] },
+      }),
     ]);
 
     // Notify both seller and buyer about completed transfer
@@ -200,6 +203,9 @@ export class TransfersService {
     const otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     await this.prisma.$transaction([
+      this.prisma.otpCode.deleteMany({
+        where: { target: transfer.seller.email, channel: 'transfer' },
+      }),
       this.prisma.shareTransfer.update({
         where: { id: transferId },
         data: { otpCode: otp, otpExpiresAt },
@@ -263,6 +269,9 @@ export class TransfersService {
     const otpExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
 
     await this.prisma.$transaction([
+      this.prisma.otpCode.deleteMany({
+        where: { target: transfer.seller.email, channel: 'transfer' },
+      }),
       this.prisma.shareTransfer.update({
         where: { id: transferId },
         data: { status: 'OTP_PENDING', otpCode: otp, otpExpiresAt },

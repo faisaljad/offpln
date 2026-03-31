@@ -67,10 +67,9 @@ export class OtpService {
 
     if (!user) throw new NotFoundException('No account found with this ' + (this.isEmail(target) ? 'email' : 'phone number'));
 
-    // Invalidate old unused OTPs for this target
-    await this.prisma.otpCode.updateMany({
-      where: { target, used: false },
-      data: { used: true },
+    // Delete old OTPs for this target
+    await this.prisma.otpCode.deleteMany({
+      where: { target },
     });
 
     const code = this.generateCode();
@@ -100,7 +99,10 @@ export class OtpService {
 
     if (!otp) throw new UnauthorizedException('Invalid or expired OTP');
 
-    await this.prisma.otpCode.update({ where: { id: otp.id }, data: { used: true } });
+    // Delete used OTP and cleanup expired ones
+    await this.prisma.otpCode.deleteMany({
+      where: { OR: [{ id: otp.id }, { target }, { expiresAt: { lt: new Date() } }] },
+    });
 
     const user = this.isEmail(target)
       ? await this.prisma.user.findUnique({ where: { email: target } })
