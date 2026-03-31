@@ -285,14 +285,15 @@ export default function InvestmentDetailScreen() {
           );
           const isDownPayment = payment.name === 'Down Payment';
           const isWaived = payment.status === 'WAIVED';
+          const isSoldUnpaid = isSold && payment.status !== 'PAID' && payment.status !== 'UNDER_REVIEW';
           const enabled = isDownPayment || isEnabled;
           return (
-            <View key={payment.id ?? i} style={[styles.paymentItem, i > 0 && styles.paymentItemBorder, (isWaived || !enabled) && { opacity: 0.4 }]}>
+            <View key={payment.id ?? i} style={[styles.paymentItem, i > 0 && styles.paymentItemBorder, (isWaived || isSoldUnpaid || !enabled) && { opacity: 0.4 }]}>
               <View style={{ flex: 1 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Text style={[styles.paymentName, isWaived && { textDecorationLine: 'line-through', color: '#94a3b8' }]}>{payment.name}</Text>
-                  {isWaived && <Text style={{ fontSize: 10, color: '#94a3b8' }}>✓ Waived — property sold</Text>}
-                  {!isWaived && !enabled && <Text style={{ fontSize: 10, color: '#94a3b8' }}>🔒 Not due yet</Text>}
+                  <Text style={[styles.paymentName, (isWaived || isSoldUnpaid) && { textDecorationLine: 'line-through', color: '#94a3b8' }]}>{payment.name}</Text>
+                  {(isWaived || isSoldUnpaid) && <Text style={{ fontSize: 10, color: '#94a3b8' }}>✓ Not required</Text>}
+                  {!isWaived && !isSoldUnpaid && !enabled && <Text style={{ fontSize: 10, color: '#94a3b8' }}>🔒 Not due yet</Text>}
                 </View>
                 {payment.dueDate && (
                   <Text style={styles.paymentDue}>Due: {formatDate(payment.dueDate)}</Text>
@@ -318,13 +319,19 @@ export default function InvestmentDetailScreen() {
                 )}
               </View>
               <View style={styles.paymentRight}>
-                <Text style={styles.paymentAmount}>{formatCurrency(payment.amount)}</Text>
-                <View style={[styles.paymentBadge, { backgroundColor: pc.bg }]}>
-                  <Text style={[styles.paymentBadgeText, { color: pc.text }]}>
-                    {payment.status === 'UNDER_REVIEW' ? 'REVIEW' : payment.status}
-                  </Text>
-                </View>
-                {(payment.status === 'PENDING' || payment.status === 'OVERDUE') && enabled && !isWaived && (
+                <Text style={[styles.paymentAmount, isSoldUnpaid && { color: '#94a3b8', textDecorationLine: 'line-through' }]}>{formatCurrency(payment.amount)}</Text>
+                {isSoldUnpaid ? (
+                  <View style={[styles.paymentBadge, { backgroundColor: '#f1f5f9' }]}>
+                    <Text style={[styles.paymentBadgeText, { color: '#94a3b8' }]}>NOT REQUIRED</Text>
+                  </View>
+                ) : (
+                  <View style={[styles.paymentBadge, { backgroundColor: pc.bg }]}>
+                    <Text style={[styles.paymentBadgeText, { color: pc.text }]}>
+                      {payment.status === 'UNDER_REVIEW' ? 'REVIEW' : payment.status}
+                    </Text>
+                  </View>
+                )}
+                {(payment.status === 'PENDING' || payment.status === 'OVERDUE') && enabled && !isWaived && !isSoldUnpaid && (
                   <TouchableOpacity
                     style={styles.uploadProofBtn}
                     onPress={() => { setProofPayment(payment); setProofModal(true); }}
