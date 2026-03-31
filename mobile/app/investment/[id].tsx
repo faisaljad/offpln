@@ -189,28 +189,49 @@ export default function InvestmentDetailScreen() {
               <Text style={styles.statValue}>{actualRoi ?? investment.property?.roi}%</Text>
               <Text style={styles.statLabel}>{isSold ? 'Actual ROI' : 'Exp. ROI'}</Text>
             </View>
-            <View style={styles.statDivider} />
-            <View style={styles.stat}>
-              <Text style={styles.statValue}>{formatCurrency(investment.totalAmount)}</Text>
-              <Text style={styles.statLabel}>Total</Text>
-            </View>
+            {!isSold && (
+              <>
+                <View style={styles.statDivider} />
+                <View style={styles.stat}>
+                  <Text style={styles.statValue}>{formatCurrency(investment.totalAmount)}</Text>
+                  <Text style={styles.statLabel}>Total</Text>
+                </View>
+              </>
+            )}
           </View>
 
-          <View style={styles.paidUnpaidRow}>
-            <View style={styles.paidUnpaidItem}>
-              <Text style={styles.paidUnpaidLabel}>Paid</Text>
-              <Text style={styles.paidUnpaidValue}>{formatCurrency(
-                (investment.payments ?? []).filter((p: any) => p.status === 'PAID').reduce((s: number, p: any) => s + p.amount, 0)
-              )}</Text>
+          {isSold ? (
+            <View style={styles.paidUnpaidRow}>
+              <View style={styles.paidUnpaidItem}>
+                <Text style={styles.paidUnpaidLabel}>You Paid</Text>
+                <Text style={styles.paidUnpaidValue}>{formatCurrency(paidAmount)}</Text>
+              </View>
+              <View style={styles.paidUnpaidDivider} />
+              <View style={styles.paidUnpaidItem}>
+                <Text style={styles.paidUnpaidLabel}>Profit</Text>
+                <Text style={[styles.paidUnpaidValue, { color: '#4ade80' }]}>+{formatCurrency(investorReturn - paidAmount)}</Text>
+              </View>
+              <View style={styles.paidUnpaidDivider} />
+              <View style={styles.paidUnpaidItem}>
+                <Text style={styles.paidUnpaidLabel}>Total Return</Text>
+                <Text style={[styles.paidUnpaidValue, { color: '#fbbf24' }]}>{formatCurrency(investorReturn)}</Text>
+              </View>
             </View>
-            <View style={styles.paidUnpaidDivider} />
-            <View style={styles.paidUnpaidItem}>
-              <Text style={styles.paidUnpaidLabel}>Unpaid</Text>
-              <Text style={[styles.paidUnpaidValue, { color: '#fbbf24' }]}>{formatCurrency(
-                (investment.payments ?? []).filter((p: any) => p.status !== 'PAID').reduce((s: number, p: any) => s + p.amount, 0)
-              )}</Text>
+          ) : (
+            <View style={styles.paidUnpaidRow}>
+              <View style={styles.paidUnpaidItem}>
+                <Text style={styles.paidUnpaidLabel}>Paid</Text>
+                <Text style={styles.paidUnpaidValue}>{formatCurrency(paidAmount)}</Text>
+              </View>
+              <View style={styles.paidUnpaidDivider} />
+              <View style={styles.paidUnpaidItem}>
+                <Text style={styles.paidUnpaidLabel}>Unpaid</Text>
+                <Text style={[styles.paidUnpaidValue, { color: '#fbbf24' }]}>{formatCurrency(
+                  (investment.payments ?? []).filter((p: any) => p.status !== 'PAID' && p.status !== 'WAIVED').reduce((s: number, p: any) => s + p.amount, 0)
+                )}</Text>
+              </View>
             </View>
-          </View>
+          )}
 
           <Text style={styles.dateText}>Invested on {formatDate(investment.createdAt)}</Text>
         </LinearGradient>
