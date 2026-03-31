@@ -140,10 +140,10 @@ export default function PropertiesScreen() {
               <View style={styles.soldRibbon}>
                 <Text style={styles.soldRibbonText}>SOLD</Text>
               </View>
-              {item.soldPrice && item.totalPrice ? (
+              {item.soldPrice ? (
                 <LinearGradient colors={['#059669', '#047857']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[styles.badge, { top: 50 }]}>
-                  <Ionicons name="trending-up" size={12} color="#fff" style={{ marginRight: 3 }} />
-                  <Text style={styles.badgeText}>{((item.soldPrice - item.totalPrice) / item.totalPrice * 100).toFixed(1)}% Profit</Text>
+                  <Ionicons name="cash-outline" size={12} color="#fff" style={{ marginRight: 3 }} />
+                  <Text style={styles.badgeText}>Sold for {formatPrice(item.soldPrice)}</Text>
                 </LinearGradient>
               ) : null}
             </>
