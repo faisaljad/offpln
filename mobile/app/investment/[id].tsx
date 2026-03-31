@@ -201,7 +201,7 @@ export default function InvestmentDetailScreen() {
           </View>
 
           {isSold ? (
-            <View style={{ gap: 4, marginTop: 14, marginBottom: 4 }}>
+            <View style={{ gap: 4, marginTop: 0, marginBottom: 4 }}>
               <View style={styles.paidUnpaidRow}>
                 <View style={styles.paidUnpaidItem}>
                   <Text style={styles.paidUnpaidLabel}>You Paid</Text>
@@ -236,7 +236,10 @@ export default function InvestmentDetailScreen() {
             </View>
           )}
 
-          <Text style={styles.dateText}>Invested on {formatDate(investment.createdAt)}</Text>
+          <Text style={styles.dateText}>
+            Invested on {formatDate(investment.createdAt)}
+            {isSold && investment.property?.updatedAt ? `  ·  Sold on ${formatDate(investment.property.updatedAt)}` : ''}
+          </Text>
         </LinearGradient>
       </View>
 
@@ -737,8 +740,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 12,
-    marginTop: 14,
-    marginBottom: 4,
+    marginTop: 0,
+    marginBottom: 10,
     padding: 12,
     alignItems: 'center',
   },
