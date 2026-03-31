@@ -129,15 +129,50 @@ export class AdminService {
         data: { status: 'SOLD', soldPrice: sellingPrice, ...(originalSellingPrice ? { originalSellingPrice } : {}) },
       });
 
+      // Get milestone info for determining which payments are due
+      const currentMilestone = property.currentMilestone;
+      const planInstallments = (property.paymentPlan as any)?.installments ?? [];
+      const milestones = planInstallments.filter((x: any) => x.dueType === 'milestone');
+      const currentMsIdx = milestones.findIndex((x: any) => x.dueValue === currentMilestone);
+
       for (const inv of investments) {
-        // Calculate actual paid amount from payment schedule
-        const paidAmount = (inv as any).payments
-          ?.filter((p: any) => p.status === 'PAID')
+        const payments = (inv as any).payments ?? [];
+
+        // Determine which unpaid payments are not due (should be ignored/waived)
+        const notDuePaymentIds: string[] = [];
+        for (const pay of payments) {
+          if (pay.status === 'PAID' || pay.status === 'UNDER_REVIEW') continue;
+          const inst = planInstallments.find((x: any) => x.name === pay.name);
+          if (!inst) continue;
+          const isDownPayment = pay.name === 'Down Payment';
+          if (isDownPayment) continue; // Down payment is always due
+
+          if (inst.dueType === 'date' && inst.dueValue) {
+            // Date-based: not due if date is in the future
+            if (new Date(inst.dueValue) > new Date()) notDuePaymentIds.push(pay.id);
+          } else if (inst.dueType === 'milestone') {
+            // Milestone-based: not due if milestone not reached
+            const thisMsIdx = milestones.findIndex((x: any) => x.name === pay.name);
+            if (currentMsIdx < 0 || currentMsIdx < thisMsIdx) notDuePaymentIds.push(pay.id);
+          }
+        }
+
+        // Waive not-due payments
+        if (notDuePaymentIds.length > 0) {
+          await tx.payment.updateMany({
+            where: { id: { in: notDuePaymentIds } },
+            data: { status: 'WAIVED' },
+          });
+        }
+
+        // Calculate paid amount (only actually PAID payments)
+        const paidAmount = payments
+          .filter((p: any) => p.status === 'PAID')
           .reduce((sum: number, p: any) => sum + p.amount, 0) || 0;
 
         // Investor's proportional share of the selling price
         const investorReturn = sellingPrice * (inv.sharesPurchased / property.totalShares);
-        // Profit based on what investor actually paid, not totalAmount
+        // Profit based on what investor actually paid
         const profitAmount   = investorReturn - paidAmount;
         const totalReturn    = investorReturn;
 
