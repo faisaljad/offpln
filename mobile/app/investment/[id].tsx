@@ -139,8 +139,12 @@ export default function InvestmentDetailScreen() {
   }
 
   const isSold = investment.property?.status === 'SOLD';
-  const actualRoi = isSold && investment.property?.soldPrice && investment.property?.totalPrice
-    ? ((investment.property.soldPrice - investment.property.totalPrice) / investment.property.totalPrice * 100).toFixed(1)
+  const paidAmount = (investment.payments ?? []).filter((p: any) => p.status === 'PAID').reduce((s: number, p: any) => s + p.amount, 0);
+  const investorReturn = isSold && investment.property?.soldPrice && investment.property?.totalShares
+    ? investment.property.soldPrice * (investment.sharesPurchased / investment.property.totalShares)
+    : 0;
+  const actualRoi = isSold && paidAmount > 0
+    ? (((investorReturn - paidAmount) / paidAmount) * 100).toFixed(1)
     : null;
   const displayStatus = isSold ? 'SOLD' : investment.status;
   const statusColor = isSold
