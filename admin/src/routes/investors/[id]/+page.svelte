@@ -142,6 +142,46 @@
     </div>
   </div>
 
+  <!-- Bank Details -->
+  <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 bg-gradient-to-r from-teal-50 to-white">
+      <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+        <span class="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center text-sm">🏦</span>
+        Bank Details
+      </h2>
+    </div>
+    {#if u.bankDetails && (u.bankDetails.bankName || u.bankDetails.iban)}
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4 p-6">
+        <div>
+          <p class="text-xs text-gray-400 font-medium mb-1">Bank Name</p>
+          <p class="text-sm font-semibold text-gray-900">{u.bankDetails.bankName || '—'}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400 font-medium mb-1">Account Holder</p>
+          <p class="text-sm font-semibold text-gray-900">{u.bankDetails.accountName || '—'}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400 font-medium mb-1">Account Number</p>
+          <p class="text-sm font-semibold text-gray-900">{u.bankDetails.accountNumber || '—'}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400 font-medium mb-1">IBAN</p>
+          <p class="text-sm font-semibold text-gray-900 break-all">{u.bankDetails.iban || '—'}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400 font-medium mb-1">SWIFT / BIC</p>
+          <p class="text-sm font-semibold text-gray-900">{u.bankDetails.swiftCode || '—'}</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-400 font-medium mb-1">Branch</p>
+          <p class="text-sm font-semibold text-gray-900">{u.bankDetails.branch || '—'}</p>
+        </div>
+      </div>
+    {:else}
+      <p class="text-gray-400 text-sm py-8 text-center">No bank details provided</p>
+    {/if}
+  </div>
+
   <!-- Payouts -->
   {#if payouts.length > 0}
     <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
