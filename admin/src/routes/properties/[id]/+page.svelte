@@ -235,9 +235,16 @@
             {/each}
           </div>
 
+          <!-- Plan info for selected tab -->
+          <div class="bg-gray-50 rounded-lg p-3 mb-4 flex gap-6 text-sm">
+            <span class="text-gray-500">Percentage: <strong class="text-blue-600">{selectedPlanTab === 'Down Payment' ? p.paymentPlan?.downPayment : (p.paymentPlan?.installments ?? []).find((x) => x.name === selectedPlanTab)?.percentage ?? 0}%</strong></span>
+            <span class="text-gray-500">Type: <strong class="text-gray-800">{selectedPlanTab === 'Down Payment' ? 'Date' : ((p.paymentPlan?.installments ?? []).find((x) => x.name === selectedPlanTab)?.dueType === 'milestone' ? 'Milestone' : 'Date')}</strong></span>
+            <span class="text-gray-500">Due: <strong class="text-gray-800">{selectedPlanTab === 'Down Payment' ? '—' : (p.paymentPlan?.installments ?? []).find((x) => x.name === selectedPlanTab)?.dueValue || '—'}</strong></span>
+          </div>
+
           <!-- Investor payments for selected tab -->
           {#if data.investments.length === 0}
-            <p class="text-gray-400 text-sm py-6 text-center">No investors yet</p>
+            <p class="text-gray-400 text-sm py-4 text-center">No investors yet</p>
           {:else}
             <div class="overflow-x-auto">
               <table class="w-full text-sm">
