@@ -201,7 +201,7 @@ export default function InvestmentDetailScreen() {
           </View>
 
           {isSold ? (
-            <View style={{ gap: 8, marginTop: 14, marginBottom: 4 }}>
+            <View style={{ gap: 4, marginTop: 14, marginBottom: 4 }}>
               <View style={styles.paidUnpaidRow}>
                 <View style={styles.paidUnpaidItem}>
                   <Text style={styles.paidUnpaidLabel}>You Paid</Text>
