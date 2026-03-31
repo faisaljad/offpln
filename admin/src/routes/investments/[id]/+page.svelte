@@ -38,6 +38,17 @@
     return new Date(d).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
+  $: payments = inv.payments ?? [];
+  $: paidAmount = payments.filter((p: any) => p.status === 'PAID').reduce((s: number, p: any) => s + p.amount, 0);
+  $: unpaidAmount = payments.filter((p: any) => p.status !== 'PAID' && p.status !== 'WAIVED').reduce((s: number, p: any) => s + p.amount, 0);
+  $: paidCount = payments.filter((p: any) => p.status === 'PAID').length;
+  $: totalCount = payments.length;
+  $: sold = inv.property?.status === 'SOLD' || !!inv.payout;
+  $: payout = inv.payout;
+  $: profit = payout ? payout.profitAmount : 0;
+  $: totalReturn = payout ? payout.totalReturn : 0;
+  $: roi = paidAmount > 0 && payout ? ((profit / paidAmount) * 100).toFixed(1) : '0';
+
   const statusColor: Record<string, string> = {
     PENDING:   'badge-pending',
     APPROVED:  'badge-approved',
@@ -49,23 +60,28 @@
     PAID:    'badge-approved',
     OVERDUE: 'badge-rejected',
     WAIVED:  'badge-active',
+    UNDER_REVIEW: 'badge-pending',
   };
-  const payStatuses = ['PENDING', 'PAID', 'OVERDUE', 'WAIVED'];
+  const payStatuses = ['PENDING', 'PAID', 'OVERDUE', 'WAIVED', 'UNDER_REVIEW'];
 </script>
 
 <svelte:head>
   <title>Investment #{inv.id.slice(0, 8)} — OffPlan Admin</title>
 </svelte:head>
 
-<div class="space-y-6 max-w-4xl">
+<div class="space-y-6 max-w-5xl">
   <!-- Header -->
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-4">
       <a href="/investments" class="text-gray-400 hover:text-gray-600">← Investments</a>
       <h1 class="text-2xl font-bold text-gray-900">Investment Detail</h1>
-      <span class={statusColor[inv.status] ?? 'badge-pending'}>{inv.status}</span>
+      {#if sold}
+        <span class="text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-full border border-emerald-200">SOLD</span>
+      {:else}
+        <span class={statusColor[inv.status] ?? 'badge-pending'}>{inv.status}</span>
+      {/if}
     </div>
-    {#if inv.status === 'PENDING'}
+    {#if inv.status === 'PENDING' && !sold}
       <div class="flex gap-3">
         <form method="POST" action="?/approve" use:enhance={() => async ({ update }) => { await update(); await invalidateAll(); }}>
           <button type="submit" class="btn-primary">Approve</button>
@@ -76,6 +92,76 @@
       </div>
     {/if}
   </div>
+
+  <!-- Financial Summary Stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+      <p class="text-xs text-gray-400 font-medium mb-1">Total Amount</p>
+      <p class="text-lg font-bold text-gray-900">{fmt(inv.totalAmount)}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-emerald-100 shadow-sm">
+      <p class="text-xs text-gray-400 font-medium mb-1">Total Paid</p>
+      <p class="text-lg font-bold text-emerald-600">{fmt(paidAmount)}</p>
+      <p class="text-xs text-gray-400">{paidCount}/{totalCount} payments</p>
+    </div>
+    {#if sold}
+      <div class="bg-white rounded-xl p-4 border border-green-100 shadow-sm bg-gradient-to-br from-white to-green-50">
+        <p class="text-xs text-gray-400 font-medium mb-1">Profit</p>
+        <p class="text-lg font-bold text-green-600">+{fmt(profit)}</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-blue-100 shadow-sm bg-gradient-to-br from-white to-blue-50">
+        <p class="text-xs text-gray-400 font-medium mb-1">Total Return</p>
+        <p class="text-lg font-bold text-blue-600">{fmt(totalReturn)}</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-indigo-100 shadow-sm bg-gradient-to-br from-white to-indigo-50">
+        <p class="text-xs text-gray-400 font-medium mb-1">ROI</p>
+        <p class="text-lg font-bold text-indigo-600">{roi}%</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-amber-100 shadow-sm bg-gradient-to-br from-white to-amber-50">
+        <p class="text-xs text-gray-400 font-medium mb-1">Payout Status</p>
+        <p class="text-lg font-bold {payout?.status === 'PAID' ? 'text-emerald-600' : 'text-amber-600'}">{payout?.status ?? '—'}</p>
+      </div>
+    {:else}
+      <div class="bg-white rounded-xl p-4 border border-red-100 shadow-sm">
+        <p class="text-xs text-gray-400 font-medium mb-1">Total Unpaid</p>
+        <p class="text-lg font-bold text-red-500">{fmt(unpaidAmount)}</p>
+      </div>
+      <div class="bg-white rounded-xl p-4 border border-blue-100 shadow-sm">
+        <p class="text-xs text-gray-400 font-medium mb-1">Progress</p>
+        <p class="text-lg font-bold text-blue-600">{inv.totalAmount > 0 ? ((paidAmount / inv.totalAmount) * 100).toFixed(0) : 0}%</p>
+      </div>
+    {/if}
+  </div>
+
+  <!-- Sold Payout Banner -->
+  {#if sold && payout}
+    <div class="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl p-6 text-white relative overflow-hidden">
+      <div class="absolute top-[-20px] right-[-20px] w-32 h-32 rounded-full bg-white/10"></div>
+      <div class="absolute bottom-[-10px] left-[30%] w-20 h-20 rounded-full bg-white/5"></div>
+      <h3 class="text-lg font-bold mb-3">Property Sold — Payout Summary</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div>
+          <p class="text-emerald-100 text-xs">Investor Paid</p>
+          <p class="text-xl font-bold">{fmt(payout.paidAmount ?? paidAmount)}</p>
+        </div>
+        <div>
+          <p class="text-emerald-100 text-xs">Profit</p>
+          <p class="text-xl font-bold">+{fmt(payout.profitAmount)}</p>
+        </div>
+        <div>
+          <p class="text-emerald-100 text-xs">Total Return</p>
+          <p class="text-xl font-bold">{fmt(payout.totalReturn)}</p>
+        </div>
+        <div>
+          <p class="text-emerald-100 text-xs">Payout Status</p>
+          <p class="text-xl font-bold">{payout.status}</p>
+          {#if payout.paidAt}
+            <p class="text-emerald-200 text-xs mt-1">Paid {fmtDate(payout.paidAt)}</p>
+          {/if}
+        </div>
+      </div>
+    </div>
+  {/if}
 
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
     <!-- Investor Info -->
@@ -100,8 +186,16 @@
       {#if inv.property.images?.[0]}
         <img src={inv.property.images[0]} alt={inv.property.title} class="w-full h-32 object-cover rounded-xl" />
       {/if}
-      <p class="font-semibold text-gray-900">{inv.property.title}</p>
+      <div class="flex items-center gap-3">
+        <p class="font-semibold text-gray-900">{inv.property.title}</p>
+        {#if inv.property.status === 'SOLD'}
+          <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">SOLD</span>
+        {/if}
+      </div>
       <p class="text-sm text-gray-500">{inv.property.location}</p>
+      {#if inv.property.soldPrice}
+        <p class="text-sm text-gray-600">Sold for <span class="font-semibold text-emerald-600">{fmt(inv.property.soldPrice)}</span></p>
+      {/if}
       <a href="/properties/{inv.property.id}" class="text-primary-600 text-sm hover:underline">View property →</a>
     </div>
 
@@ -112,9 +206,10 @@
         {#each [
           { label: 'Stake Purchased', value: `${inv.sharesPurchased * 10}% (${inv.sharesPurchased} shares)` },
           { label: 'Total Amount',    value: fmt(inv.totalAmount) },
+          { label: 'Total Paid',      value: fmt(paidAmount) },
           { label: 'Price / Share',   value: fmt(inv.property.pricePerShare) },
           { label: 'Investment Date', value: fmtDate(inv.createdAt) },
-          { label: 'Status',          value: inv.status },
+          { label: 'Status',          value: sold ? 'SOLD' : inv.status },
         ] as row}
           <div class="flex justify-between text-sm border-b border-gray-50 pb-2">
             <span class="text-gray-500">{row.label}</span>
@@ -127,9 +222,9 @@
     <!-- Payment Schedule -->
     <div class="card">
       <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment Schedule</h2>
-      {#if inv.payments?.length}
+      {#if payments.length}
         <div class="space-y-2">
-          {#each inv.payments as payment}
+          {#each payments as payment}
             <div class="flex items-center justify-between py-2 border-b border-gray-50 gap-3">
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-800">{payment.name}</p>
@@ -139,22 +234,35 @@
                   {#if payment.paidAt} · Paid {fmtDate(payment.paidAt)}{/if}
                 </p>
                 {#if payment.proofUrl}
-                  <a href={payment.proofUrl} target="_blank" class="text-xs text-primary-600 hover:underline">
-                    📎 View proof
-                  </a>
+                  <a href={payment.proofUrl} target="_blank" class="text-xs text-primary-600 hover:underline">View proof</a>
+                {/if}
+                {#if payment.investorProofUrl}
+                  <a href={payment.investorProofUrl} target="_blank" class="text-xs text-primary-600 hover:underline ml-2">Investor proof</a>
                 {/if}
               </div>
               <div class="text-right flex-shrink-0">
                 <p class="text-sm font-semibold text-gray-900">{fmt(payment.amount)}</p>
-                <span class={payStatusColor[payment.status] ?? 'badge-pending'}>{payment.status}</span>
+                {#if payment.status === 'WAIVED'}
+                  <span class="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">WAIVED</span>
+                {:else if payment.status === 'PAID'}
+                  <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">PAID</span>
+                {:else if payment.status === 'OVERDUE'}
+                  <span class="text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">OVERDUE</span>
+                {:else if payment.status === 'UNDER_REVIEW'}
+                  <span class="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">REVIEW</span>
+                {:else}
+                  <span class="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">PENDING</span>
+                {/if}
               </div>
-              <button
-                type="button"
-                onclick={() => openPaymentModal(payment)}
-                class="px-2 py-1 text-xs border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-700 flex-shrink-0"
-              >
-                Edit
-              </button>
+              {#if !sold || payment.status !== 'WAIVED'}
+                <button
+                  type="button"
+                  onclick={() => openPaymentModal(payment)}
+                  class="px-2 py-1 text-xs border border-gray-200 rounded-lg text-gray-500 hover:bg-gray-50 hover:text-gray-700 flex-shrink-0"
+                >
+                  Edit
+                </button>
+              {/if}
             </div>
           {/each}
         </div>
@@ -172,7 +280,7 @@
   {/if}
 </div>
 
-<!-- ── Edit Payment Modal ───────────────────────────────────────────── -->
+<!-- Edit Payment Modal -->
 {#if showPaymentModal && selectedPayment}
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-md">
@@ -190,7 +298,6 @@
       >
         <input type="hidden" name="paymentId" value={selectedPayment.id} />
 
-        <!-- Payment summary -->
         <div class="bg-gray-50 rounded-xl p-4 space-y-1">
           <p class="font-semibold text-gray-900">{selectedPayment.name}</p>
           <div class="flex items-center justify-between mt-1">
@@ -200,13 +307,10 @@
             {/if}
           </div>
           {#if selectedPayment.proofUrl}
-            <a href={selectedPayment.proofUrl} target="_blank" class="text-xs text-primary-600 hover:underline">
-              📎 Current proof of payment
-            </a>
+            <a href={selectedPayment.proofUrl} target="_blank" class="text-xs text-primary-600 hover:underline">Current proof</a>
           {/if}
         </div>
 
-        <!-- Status -->
         <div>
           <label class="block text-sm font-semibold text-gray-700 mb-2" for="payStatus">
             Payment Status <span class="text-red-500">*</span>
@@ -223,7 +327,6 @@
           </select>
         </div>
 
-        <!-- Proof of payment upload -->
         <div>
           <label class="block text-sm font-semibold text-gray-700 mb-2" for="proof">
             Proof of Payment <span class="text-gray-400 font-normal">(optional)</span>
@@ -234,12 +337,11 @@
           >
             {#if proofFile && proofFile.length > 0}
               <div class="text-center">
-                <p class="text-sm font-semibold text-blue-600">📄 {proofFile[0].name}</p>
+                <p class="text-sm font-semibold text-blue-600">{proofFile[0].name}</p>
                 <p class="text-xs text-gray-400 mt-1">{(proofFile[0].size / 1024).toFixed(1)} KB</p>
               </div>
             {:else}
               <div class="text-center">
-                <p class="text-2xl mb-1">📎</p>
                 <p class="text-sm text-gray-500">Click to upload proof</p>
                 <p class="text-xs text-gray-400 mt-1">PDF, JPG, PNG up to 10MB</p>
               </div>
@@ -266,7 +368,7 @@
           </button>
           <button type="submit"
             class="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700">
-            ✓ Save Changes
+            Save Changes
           </button>
         </div>
       </form>

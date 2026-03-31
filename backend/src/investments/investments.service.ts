@@ -159,9 +159,10 @@ export class InvestmentsService {
         skip,
         take: limit,
         include: {
-          property: { select: { id: true, title: true, location: true } },
+          property: { select: { id: true, title: true, location: true, status: true, soldPrice: true, images: true } },
           user: { select: { id: true, name: true, email: true } },
           payments: true,
+          payout: true,
         },
         orderBy: { createdAt: 'desc' },
       }),
