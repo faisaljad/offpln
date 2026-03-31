@@ -243,24 +243,26 @@ export default function InvestmentDetailScreen() {
         </LinearGradient>
       </View>
 
-      {/* Payment Progress */}
-      <View style={styles.card}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Payment Progress</Text>
-          <View style={styles.progressLabelPill}>
-            <Text style={styles.progressLabel}>{paidCount}/{totalPayments} paid</Text>
+      {/* Payment Progress — hide when sold */}
+      {!isSold && (
+        <View style={styles.card}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Payment Progress</Text>
+            <View style={styles.progressLabelPill}>
+              <Text style={styles.progressLabel}>{paidCount}/{totalPayments} paid</Text>
+            </View>
           </View>
+          <View style={styles.progressBar}>
+            <LinearGradient
+              colors={['#34d399', '#10b981']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={[styles.progressFill, { width: `${progressPct}%` }]}
+            />
+          </View>
+          <Text style={styles.progressPct}>{progressPct}% complete</Text>
         </View>
-        <View style={styles.progressBar}>
-          <LinearGradient
-            colors={['#34d399', '#10b981']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.progressFill, { width: `${progressPct}%` }]}
-          />
-        </View>
-        <Text style={styles.progressPct}>{progressPct}% complete</Text>
-      </View>
+      )}
 
       {/* Payments list */}
       <View style={styles.card}>
