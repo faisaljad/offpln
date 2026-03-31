@@ -201,20 +201,23 @@ export default function InvestmentDetailScreen() {
           </View>
 
           {isSold ? (
-            <View style={styles.paidUnpaidRow}>
-              <View style={styles.paidUnpaidItem}>
-                <Text style={styles.paidUnpaidLabel}>You Paid</Text>
-                <Text style={styles.paidUnpaidValue}>{formatCurrency(paidAmount)}</Text>
+            <View style={{ gap: 8, marginTop: 14, marginBottom: 4 }}>
+              <View style={styles.paidUnpaidRow}>
+                <View style={styles.paidUnpaidItem}>
+                  <Text style={styles.paidUnpaidLabel}>You Paid</Text>
+                  <Text style={styles.paidUnpaidValue}>{formatCurrency(paidAmount)}</Text>
+                </View>
+                <View style={styles.paidUnpaidDivider} />
+                <View style={styles.paidUnpaidItem}>
+                  <Text style={styles.paidUnpaidLabel}>Profit</Text>
+                  <Text style={[styles.paidUnpaidValue, { color: '#4ade80' }]}>+{formatCurrency(investorReturn - paidAmount)}</Text>
+                </View>
               </View>
-              <View style={styles.paidUnpaidDivider} />
-              <View style={styles.paidUnpaidItem}>
-                <Text style={styles.paidUnpaidLabel}>Profit</Text>
-                <Text style={[styles.paidUnpaidValue, { color: '#4ade80' }]}>+{formatCurrency(investorReturn - paidAmount)}</Text>
-              </View>
-              <View style={styles.paidUnpaidDivider} />
-              <View style={styles.paidUnpaidItem}>
-                <Text style={styles.paidUnpaidLabel}>Total Return</Text>
-                <Text style={[styles.paidUnpaidValue, { color: '#fbbf24' }]}>{formatCurrency(investorReturn)}</Text>
+              <View style={[styles.paidUnpaidRow, { backgroundColor: 'rgba(251,191,36,0.12)' }]}>
+                <View style={styles.paidUnpaidItem}>
+                  <Text style={[styles.paidUnpaidLabel, { color: 'rgba(251,191,36,0.7)' }]}>Total Return</Text>
+                  <Text style={[styles.paidUnpaidValue, { color: '#fbbf24', fontSize: 18 }]}>{formatCurrency(investorReturn)}</Text>
+                </View>
               </View>
             </View>
           ) : (
