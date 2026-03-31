@@ -116,7 +116,7 @@
             {@const paid = getPaid(inv)}
             {@const unpaid = getUnpaid(inv)}
             {@const sold = isSold(inv)}
-            <tr class="border-b border-gray-50 hover:bg-gray-50" class:bg-emerald-50/30={sold}>
+            <tr class="border-b border-gray-50 hover:bg-gray-50 {sold ? 'bg-emerald-50' : ''}">
               <td class="py-3 px-4">
                 <div class="font-medium text-gray-900">{inv.user.name}</div>
                 <div class="text-gray-400 text-xs">{inv.user.email}</div>
