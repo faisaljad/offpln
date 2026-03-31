@@ -263,20 +263,22 @@ export default function InvestmentsScreen() {
           </View>
         )}
 
-        <View style={styles.paymentSection}>
-          <View style={styles.paymentLabelRow}>
-            <Text style={styles.paymentLabel}>Payment Progress</Text>
-            <Text style={styles.paymentCount}>{paidCount}/{totalPayments}</Text>
+        {!isSold && (
+          <View style={styles.paymentSection}>
+            <View style={styles.paymentLabelRow}>
+              <Text style={styles.paymentLabel}>Payment Progress</Text>
+              <Text style={styles.paymentCount}>{paidCount}/{totalPayments}</Text>
+            </View>
+            <View style={styles.progressBar}>
+              <LinearGradient
+                colors={['#10b981', '#059669']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={[styles.progressFill, { width: `${progressPercent}%` }]}
+              />
+            </View>
           </View>
-          <View style={styles.progressBar}>
-            <LinearGradient
-              colors={['#10b981', '#059669']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={[styles.progressFill, { width: `${progressPercent}%` }]}
-            />
-          </View>
-        </View>
+        )}
 
         {nextPayment && (
           <View style={styles.nextPayment}>
