@@ -151,6 +151,8 @@ export const api = {
   // User
   getProfile: () => request('/user/profile'),
   updateProfile: (body: any) => request('/user/profile', { method: 'PATCH', body: JSON.stringify(body) }),
+  getBankDetails: () => request('/user/bank-details'),
+  updateBankDetails: (body: any) => request('/user/bank-details', { method: 'PUT', body: JSON.stringify(body) }),
 
   // Notifications
   getNotifications: (page: number) => request('/notifications?page=' + page + '&limit=20'),

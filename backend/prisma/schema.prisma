@@ -29,6 +29,7 @@ model User {
   notifications     Notification[]
   notificationPrefs Json?
   pushToken         String?
+  bankDetails       Json?
 }
 
 model OtpCode {

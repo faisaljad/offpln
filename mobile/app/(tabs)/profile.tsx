@@ -17,6 +17,7 @@ const MENU_SECTIONS = [
       { icon: 'wallet-outline', label: 'My Investments', route: '/(tabs)/investments', color: '#0284c7', bg: '#eff6ff' },
       { icon: 'swap-horizontal-outline', label: 'My Transfers', route: '/my-transfers', color: '#7c3aed', bg: '#f5f3ff' },
       { icon: 'calendar-outline', label: 'Payment Schedule', route: '/payments', color: '#059669', bg: '#ecfdf5' },
+      { icon: 'card-outline', label: 'Bank Details', route: '/bank-details', color: '#0891b2', bg: '#ecfeff' },
     ],
   },
   {

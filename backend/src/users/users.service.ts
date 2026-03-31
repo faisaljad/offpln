@@ -16,6 +16,7 @@ export class UsersService {
         role: true,
         isVerified: true,
         createdAt: true,
+        bankDetails: true,
       },
     });
     if (!user) throw new NotFoundException('User not found');
@@ -63,6 +64,20 @@ export class UsersService {
         phone: true,
         role: true,
       },
+    });
+  }
+
+  async getBankDetails(id: string) {
+    const user = await this.prisma.user.findUnique({ where: { id }, select: { bankDetails: true } });
+    if (!user) throw new NotFoundException('User not found');
+    return user.bankDetails || {};
+  }
+
+  async updateBankDetails(id: string, bankDetails: any) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { bankDetails },
+      select: { bankDetails: true },
     });
   }
 }
