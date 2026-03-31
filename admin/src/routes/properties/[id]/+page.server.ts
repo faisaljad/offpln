@@ -30,6 +30,17 @@ async function adminFetch(path: string, token: string, method = 'GET', body?: an
 }
 
 export const actions: Actions = {
+  setMilestone: async ({ request, cookies, params }) => {
+    const token = cookies.get('admin_token');
+    const fd = await request.formData();
+    const milestone = fd.get('milestone') as string;
+    try {
+      await adminFetch(`/admin/properties/${params.id}/milestone`, token!, 'PUT', { milestone });
+    } catch (err: any) {
+      return fail(400, { error: err.message || 'Failed to update milestone' });
+    }
+    return { success: true, action: 'milestone' };
+  },
   setSold: async ({ request, cookies, params }) => {
     const token = cookies.get('admin_token');
     const fd = await request.formData();

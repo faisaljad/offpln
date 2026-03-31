@@ -183,21 +183,55 @@
         <div class="text-gray-600 leading-relaxed prose prose-sm max-w-none">{@html p.description}</div>
       </div>
 
+      <!-- Current Milestone Selector -->
+      {#if (p.paymentPlan?.installments ?? []).some((inst) => inst.dueType === 'milestone')}
+        <div class="card">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-lg font-semibold text-gray-900">Current Milestone</h2>
+            <span class="text-xs text-gray-400">Controls which milestone payments are enabled</span>
+          </div>
+          <form method="POST" action="?/setMilestone" use:enhance={() => { return async ({ result, update }) => {
+            if (result.type === 'success') { toast.success('Milestone updated'); invalidateAll(); }
+            else { await update(); }
+          }; }}>
+            <div class="flex gap-3">
+              <select name="milestone" class="input flex-1" value={p.currentMilestone ?? ''}>
+                <option value="">— No milestone reached —</option>
+                {#each (p.paymentPlan?.installments ?? []).filter((inst) => inst.dueType === 'milestone') as inst}
+                  <option value={inst.dueValue}>{inst.dueValue}</option>
+                {/each}
+              </select>
+              <button type="submit" class="btn-primary text-sm px-4">Update</button>
+            </div>
+          </form>
+          {#if p.currentMilestone}
+            <p class="text-sm text-emerald-600 mt-2">✓ Current milestone: <strong>{p.currentMilestone}</strong></p>
+          {/if}
+        </div>
+      {/if}
+
       <!-- Payment Plan with Investor Status -->
       <div class="card">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Payment Schedule</h2>
 
         {#if paymentPlanNames.length > 0}
-          <!-- Tabs -->
+          <!-- Tabs with enabled/disabled indicator -->
           <div class="flex flex-wrap gap-2 mb-4 border-b border-gray-100 pb-3">
             {#each paymentPlanNames as planName, i}
-              <button
-                type="button"
-                onclick={() => selectedPlanTab = planName}
-                class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors {selectedPlanTab === planName ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
-              >
-                {planName}
-              </button>
+              {#if true}
+                {@const inst = planName === 'Down Payment' ? { dueType: 'date', dueValue: '' } : (p.paymentPlan?.installments ?? []).find((x) => x.name === planName)}
+                {@const isEnabled = !inst ? false : inst.dueType === 'date' ? (!inst.dueValue || new Date(inst.dueValue) <= new Date()) : (planName === 'Down Payment' || (p.currentMilestone && (p.paymentPlan?.installments ?? []).findIndex((x) => x.dueValue === p.currentMilestone) >= (p.paymentPlan?.installments ?? []).findIndex((x) => x.name === planName)))}
+                <button
+                  type="button"
+                  onclick={() => selectedPlanTab = planName}
+                  class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors {selectedPlanTab === planName ? 'bg-primary-600 text-white' : isEnabled ? 'bg-gray-100 text-gray-600 hover:bg-gray-200' : 'bg-gray-50 text-gray-300'}"
+                >
+                  {planName}
+                  {#if !isEnabled}
+                    <span class="ml-1 text-xs">🔒</span>
+                  {/if}
+                </button>
+              {/if}
             {/each}
           </div>
 

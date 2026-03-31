@@ -238,10 +238,29 @@ export default function InvestmentDetailScreen() {
         <Text style={styles.sectionTitle}>Payment Schedule</Text>
         {investment.payments?.map((payment: any, i: number) => {
           const pc = PAYMENT_STATUS_COLORS[payment.status] ?? { bg: '#f3f4f6', text: '#6b7280' };
+          // Determine if payment is enabled
+          const plan = investment.property?.paymentPlan;
+          const inst = plan?.installments?.find((x: any) => x.name === payment.name);
+          const isDateType = !inst || inst.dueType === 'date';
+          const isMilestoneType = inst?.dueType === 'milestone';
+          const currentMs = investment.property?.currentMilestone;
+          const milestones = (plan?.installments ?? []).filter((x: any) => x.dueType === 'milestone');
+          const currentMsIdx = milestones.findIndex((x: any) => x.dueValue === currentMs);
+          const thisMsIdx = milestones.findIndex((x: any) => x.name === payment.name);
+          const isEnabled = payment.status === 'PAID' || payment.status === 'UNDER_REVIEW' || (
+            isDateType ? (!payment.dueDate || new Date(payment.dueDate) <= new Date()) :
+            isMilestoneType ? (currentMsIdx >= 0 && currentMsIdx >= thisMsIdx) :
+            true
+          );
+          const isDownPayment = payment.name === 'Down Payment';
+          const enabled = isDownPayment || isEnabled;
           return (
-            <View key={payment.id ?? i} style={[styles.paymentItem, i > 0 && styles.paymentItemBorder]}>
+            <View key={payment.id ?? i} style={[styles.paymentItem, i > 0 && styles.paymentItemBorder, !enabled && { opacity: 0.4 }]}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.paymentName}>{payment.name}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.paymentName}>{payment.name}</Text>
+                  {!enabled && <Text style={{ fontSize: 10, color: '#94a3b8' }}>🔒 Not due yet</Text>}
+                </View>
                 {payment.dueDate && (
                   <Text style={styles.paymentDue}>Due: {formatDate(payment.dueDate)}</Text>
                 )}
@@ -272,7 +291,7 @@ export default function InvestmentDetailScreen() {
                     {payment.status === 'UNDER_REVIEW' ? 'REVIEW' : payment.status}
                   </Text>
                 </View>
-                {(payment.status === 'PENDING' || payment.status === 'OVERDUE') && (
+                {(payment.status === 'PENDING' || payment.status === 'OVERDUE') && enabled && (
                   <TouchableOpacity
                     style={styles.uploadProofBtn}
                     onPress={() => { setProofPayment(payment); setProofModal(true); }}

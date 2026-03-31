@@ -91,8 +91,9 @@ model Property {
   soldPrice              Float?
   originalSellingPrice   Float?
   area            Float?
-  handoverDate    String?
-  propertyTypeId  String?
+  handoverDate      String?
+  currentMilestone  String?
+  propertyTypeId    String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

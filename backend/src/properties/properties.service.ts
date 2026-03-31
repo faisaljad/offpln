@@ -86,6 +86,8 @@ export class PropertiesService {
           createdAt: true,
           area: true,
           handoverDate: true,
+          currentMilestone: true,
+          paymentPlan: true,
           propertyTypeId: true,
           propertyType: true,
         },
