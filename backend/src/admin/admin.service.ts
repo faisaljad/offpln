@@ -184,6 +184,12 @@ export class AdminService {
 
         payoutData.push({ userId: inv.userId, totalReturn, payoutId: payout.id });
       }
+
+      // Mark all approved/payment_required investments as PENDING_PAYOUT
+      await tx.investment.updateMany({
+        where: { propertyId, status: { in: ['APPROVED', 'PAYMENT_REQUIRED'] } },
+        data: { status: 'PENDING_PAYOUT' },
+      });
     });
 
     // Notify each investor about their payout (fire-and-forget)
@@ -238,13 +244,19 @@ export class AdminService {
   async markPayoutPaid(payoutId: string, receiptUrl?: string) {
     const payout = await this.prisma.payout.findUnique({
       where: { id: payoutId },
-      select: { id: true, userId: true, status: true, totalReturn: true },
+      select: { id: true, userId: true, status: true, totalReturn: true, investmentId: true },
     });
     if (!payout) throw new NotFoundException('Payout not found');
-    const updated = await this.prisma.payout.update({
-      where: { id: payoutId },
-      data: { status: 'PAID', paidAt: new Date(), receiptUrl: receiptUrl ?? null },
-    });
+    const [updated] = await this.prisma.$transaction([
+      this.prisma.payout.update({
+        where: { id: payoutId },
+        data: { status: 'PAID', paidAt: new Date(), receiptUrl: receiptUrl ?? null },
+      }),
+      this.prisma.investment.update({
+        where: { id: payout.investmentId },
+        data: { status: 'COMPLETED' },
+      }),
+    ]);
 
     // Notify investor that payout has been marked as paid
     try {

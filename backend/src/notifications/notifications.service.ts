@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import * as nodemailer from 'nodemailer';
 import { PrismaService } from '../prisma/prisma.service';
 
 // Notification types
@@ -25,7 +26,23 @@ const DEFAULT_PREFS = {
 
 @Injectable()
 export class NotificationsService {
-  constructor(private prisma: PrismaService) {}
+  private transporter: nodemailer.Transporter | null = null;
+  private adminEmail: string | undefined;
+
+  constructor(private prisma: PrismaService) {
+    const host = process.env.SMTP_HOST;
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+    if (host && user && pass) {
+      this.transporter = nodemailer.createTransport({
+        host,
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: process.env.SMTP_SECURE === 'true',
+        auth: { user, pass },
+      });
+    }
+    this.adminEmail = process.env.ADMIN_EMAIL;
+  }
 
   // --- User endpoints ---
 
@@ -312,5 +329,38 @@ export class NotificationsService {
 
   async adminSendToUser(userId: string, title: string, body: string) {
     return this.send(userId, NOTIF_TYPES.ADMIN_BROADCAST, title, body);
+  }
+
+  // ── Admin email notification ──────────────────────────────────────────────
+  async notifyAdmin(subject: string, heading: string, details: { label: string; value: string }[]) {
+    if (!this.transporter || !this.adminEmail) return;
+    const from = process.env.SMTP_FROM || process.env.SMTP_USER;
+    const rows = details.map((d) => `
+      <tr>
+        <td style="padding:8px 12px;color:#6b7280;font-size:14px;white-space:nowrap">${d.label}</td>
+        <td style="padding:8px 12px;color:#111827;font-size:14px;font-weight:500">${d.value}</td>
+      </tr>
+    `).join('');
+
+    await this.transporter.sendMail({
+      from: `"OffPlan" <${from}>`,
+      to: this.adminEmail,
+      subject,
+      html: `
+        <div style="font-family:sans-serif;max-width:520px;margin:0 auto;padding:32px">
+          <div style="background:#0c4a6e;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px">
+            <h1 style="color:#fbbf24;margin:0;font-size:28px;letter-spacing:-1px">OffPlan</h1>
+            <p style="color:#7dd3fc;margin:8px 0 0;font-size:13px">Admin Notification</p>
+          </div>
+          <h2 style="color:#111827;font-size:20px;margin:0 0 16px">${heading}</h2>
+          <table style="width:100%;border-collapse:collapse;background:#f9fafb;border-radius:8px;overflow:hidden">
+            ${rows}
+          </table>
+          <p style="color:#9ca3af;font-size:12px;text-align:center;margin-top:24px">
+            Log in to the admin panel to take action.
+          </p>
+        </div>
+      `,
+    }).catch(() => {});
   }
 }

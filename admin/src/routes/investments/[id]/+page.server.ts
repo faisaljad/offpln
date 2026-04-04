@@ -9,7 +9,8 @@ export const load: PageServerLoad = async ({ cookies, params }) => {
   if (!token) throw redirect(302, '/login');
   return guardedLoad(async () => {
     const investment = await apiFetch(`/admin/investments/${params.id}`, { token });
-    return { investment };
+    const allInvestments = await apiFetch(`/admin/investments?userId=${investment.user.id}&limit=100`, { token });
+    return { investment, investorInvestments: allInvestments.investments ?? [] };
   });
 };
 

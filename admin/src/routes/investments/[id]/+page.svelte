@@ -38,6 +38,18 @@
     return new Date(d).toLocaleDateString('en-AE', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
+  $: allInv = data.investorInvestments ?? [];
+  $: totalInvestments = allInv.length;
+  $: allPayments = allInv.flatMap((i: any) => i.payments ?? []);
+  $: investorTotalPaid = allPayments.filter((p: any) => p.status === 'PAID').reduce((s: number, p: any) => s + p.amount, 0);
+  $: nonSoldInv = allInv.filter((i: any) => i.property?.status !== 'SOLD' && !i.payout);
+  $: nonSoldPayments = nonSoldInv.flatMap((i: any) => i.payments ?? []);
+  $: investorTotalUnpaid = nonSoldPayments.filter((p: any) => p.status !== 'PAID' && p.status !== 'WAIVED').reduce((s: number, p: any) => s + p.amount, 0);
+
+  $: soldProperties = allInv.filter((i: any) => i.property?.status === 'SOLD' || i.payout).length;
+  $: activeInvestments = allInv.filter((i: any) => i.status === 'APPROVED').length;
+  $: totalPayouts = allInv.filter((i: any) => i.payout).reduce((s: number, i: any) => s + (i.payout?.totalReturn ?? 0), 0);
+
   $: payments = inv.payments ?? [];
   $: paidAmount = payments.filter((p: any) => p.status === 'PAID').reduce((s: number, p: any) => s + p.amount, 0);
   $: unpaidAmount = payments.filter((p: any) => p.status !== 'PAID' && p.status !== 'WAIVED').reduce((s: number, p: any) => s + p.amount, 0);
@@ -50,10 +62,20 @@
   $: roi = paidAmount > 0 && payout ? ((profit / paidAmount) * 100).toFixed(1) : '0';
 
   const statusColor: Record<string, string> = {
-    PENDING:   'badge-pending',
-    APPROVED:  'badge-approved',
-    REJECTED:  'badge-rejected',
-    COMPLETED: 'badge-active',
+    PENDING:          'badge-pending',
+    APPROVED:         'badge-approved',
+    PAYMENT_REQUIRED: 'badge-rejected',
+    REJECTED:         'badge-rejected',
+    PENDING_PAYOUT:   'badge-pending',
+    COMPLETED:        'badge-active',
+  };
+  const statusLabel: Record<string, string> = {
+    PENDING: 'Pending',
+    APPROVED: 'Approved',
+    PAYMENT_REQUIRED: 'Payment Required',
+    REJECTED: 'Rejected',
+    PENDING_PAYOUT: 'Pending Payout',
+    COMPLETED: 'Completed',
   };
   const payStatusColor: Record<string, string> = {
     PENDING: 'badge-pending',
@@ -75,11 +97,7 @@
     <div class="flex items-center gap-4">
       <a href="/investments" class="text-gray-400 hover:text-gray-600">← Investments</a>
       <h1 class="text-2xl font-bold text-gray-900">Investment Detail</h1>
-      {#if sold}
-        <span class="text-xs font-semibold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-full border border-emerald-200">SOLD</span>
-      {:else}
-        <span class={statusColor[inv.status] ?? 'badge-pending'}>{inv.status}</span>
-      {/if}
+      <span class={statusColor[inv.status] ?? 'badge-pending'}>{statusLabel[inv.status] ?? inv.status}</span>
     </div>
     {#if inv.status === 'PENDING' && !sold}
       <div class="flex gap-3">
@@ -177,6 +195,34 @@
           {#if inv.user.phone}<p class="text-sm text-gray-500">{inv.user.phone}</p>{/if}
         </div>
       </div>
+      <div class="grid grid-cols-3 gap-3 pt-2">
+        <div class="bg-gray-50 rounded-lg p-3 text-center">
+          <p class="text-lg font-bold text-gray-900">{totalInvestments}</p>
+          <p class="text-xs text-gray-400">Investments</p>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-3 text-center">
+          <p class="text-lg font-bold text-emerald-600">{activeInvestments}</p>
+          <p class="text-xs text-gray-400">Active</p>
+        </div>
+        <div class="bg-gray-50 rounded-lg p-3 text-center">
+          <p class="text-lg font-bold text-blue-600">{soldProperties}</p>
+          <p class="text-xs text-gray-400">Sold</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-emerald-50 rounded-lg p-3">
+          <p class="text-xs text-gray-400 mb-1">Total Paid</p>
+          <p class="text-sm font-bold text-emerald-600">{fmt(investorTotalPaid)}</p>
+        </div>
+        <div class="bg-red-50 rounded-lg p-3">
+          <p class="text-xs text-gray-400 mb-1">Total Unpaid</p>
+          <p class="text-sm font-bold text-red-500">{fmt(investorTotalUnpaid)}</p>
+        </div>
+        <div class="bg-amber-50 rounded-lg p-3">
+          <p class="text-xs text-gray-400 mb-1">Total Payouts</p>
+          <p class="text-sm font-bold text-amber-600">{fmt(totalPayouts)}</p>
+        </div>
+      </div>
       <a href="/investors/{inv.user.id}" class="text-primary-600 text-sm hover:underline">View investor profile →</a>
     </div>
 
@@ -209,7 +255,7 @@
           { label: 'Total Paid',      value: fmt(paidAmount) },
           { label: 'Price / Share',   value: fmt(inv.property.pricePerShare) },
           { label: 'Investment Date', value: fmtDate(inv.createdAt) },
-          { label: 'Status',          value: sold ? 'SOLD' : inv.status },
+          { label: 'Status',          value: statusLabel[inv.status] ?? inv.status },
         ] as row}
           <div class="flex justify-between text-sm border-b border-gray-50 pb-2">
             <span class="text-gray-500">{row.label}</span>
@@ -225,7 +271,9 @@
       {#if payments.length}
         <div class="space-y-2">
           {#each payments as payment}
-            <div class="flex items-center justify-between py-2 border-b border-gray-50 gap-3">
+            {@const notDueYet = payment.status === 'PENDING' && ((payment.dueDate && new Date(payment.dueDate) > new Date()) || payment.milestone)}
+            {@const disabled = (sold && payment.status !== 'PAID' && payment.status !== 'WAIVED') || payment.status === 'WAIVED' || notDueYet}
+            <div class="flex items-center justify-between py-2 border-b border-gray-50 gap-3 {disabled ? 'opacity-40 pointer-events-none' : ''}">
               <div class="flex-1 min-w-0">
                 <p class="text-sm font-medium text-gray-800">{payment.name}</p>
                 <p class="text-xs text-gray-400">
@@ -254,7 +302,7 @@
                   <span class="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">PENDING</span>
                 {/if}
               </div>
-              {#if !sold || payment.status !== 'WAIVED'}
+              {#if !sold || payment.status === 'PAID'}
                 <button
                   type="button"
                   onclick={() => openPaymentModal(payment)}

@@ -68,7 +68,7 @@ export class TransfersService {
     }
 
     // Re-listing after rejection/cancellation — reuse the existing row
-    return this.prisma.shareTransfer.upsert({
+    const listing = await this.prisma.shareTransfer.upsert({
       where: { investmentId },
       create: { investmentId, sellerId, askPrice, notes, status: 'PENDING_APPROVAL' },
       update: {
@@ -82,6 +82,23 @@ export class TransfersService {
       },
       include: TRANSFER_INCLUDE,
     });
+
+    // Notify admin about new listing request
+    const seller = (listing as any).seller;
+    const propertyTitle = (listing as any).investment?.property?.title ?? 'Unknown';
+    this.notifications.notifyAdmin(
+      `New Listing Request: ${seller?.name} — ${propertyTitle}`,
+      'New Share Listing Request',
+      [
+        { label: 'Seller', value: seller?.name ?? '' },
+        { label: 'Email', value: seller?.email ?? '' },
+        { label: 'Property', value: propertyTitle },
+        { label: 'Ask Price', value: `AED ${askPrice.toLocaleString()}` },
+        ...(notes ? [{ label: 'Notes', value: notes }] : []),
+      ],
+    ).catch(() => {});
+
+    return listing;
   }
 
   // ── Seller: cancel listing ────────────────────────────────────────────────
@@ -122,9 +139,25 @@ export class TransfersService {
 
     // Notify seller that someone requested to buy
     try {
-      const propertyTitle = (updated as any).investment?.property?.title ?? 'your investment';
-      this.notifications.notifyTransferUpdate(transfer.sellerId, propertyTitle, 'REQUESTED', transferId).catch(() => {});
+      const propTitle = (updated as any).investment?.property?.title ?? 'your investment';
+      this.notifications.notifyTransferUpdate(transfer.sellerId, propTitle, 'REQUESTED', transferId).catch(() => {});
     } catch {}
+
+    // Notify admin about buy request
+    const buyer = (updated as any).buyer;
+    const sellerInfo = (updated as any).seller;
+    const propTitle2 = (updated as any).investment?.property?.title ?? 'Unknown';
+    this.notifications.notifyAdmin(
+      `Buy Request: ${buyer?.name} wants to buy shares — ${propTitle2}`,
+      'New Buy Request',
+      [
+        { label: 'Buyer', value: buyer?.name ?? '' },
+        { label: 'Buyer Email', value: buyer?.email ?? '' },
+        { label: 'Seller', value: sellerInfo?.name ?? '' },
+        { label: 'Property', value: propTitle2 },
+        { label: 'Ask Price', value: `AED ${(updated as any).askPrice?.toLocaleString() ?? '0'}` },
+      ],
+    ).catch(() => {});
 
     return updated;
   }

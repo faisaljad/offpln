@@ -84,6 +84,19 @@ export class InvestmentsService {
       return inv;
     });
 
+    // Notify admin about new investment request
+    this.notifications.notifyAdmin(
+      `New Investment: ${investment.user.name} — ${investment.property.title}`,
+      'New Investment Request',
+      [
+        { label: 'Investor', value: investment.user.name },
+        { label: 'Email', value: investment.user.email },
+        { label: 'Property', value: investment.property.title },
+        { label: 'Shares', value: `${investment.sharesPurchased}` },
+        { label: 'Total Amount', value: `AED ${investment.totalAmount.toLocaleString()}` },
+      ],
+    ).catch(() => {});
+
     return investment;
   }
 
@@ -175,7 +188,7 @@ export class InvestmentsService {
     return this.prisma.$transaction(async (tx) => {
       const investment = await tx.investment.findFirst({
         where: { id },
-        include: { property: true },
+        include: { property: true, payments: true },
       });
       if (!investment) throw new NotFoundException('Investment not found');
 
@@ -188,15 +201,27 @@ export class InvestmentsService {
           where: { id: investment.propertyId },
           data: {
             availableShares: newAvailable,
-            // Reopen the property if it was sold out
             status: investment.property.status === 'SOLD_OUT' ? 'ACTIVE' : investment.property.status,
           },
         });
       }
 
+      // When approving, check if there are due unpaid payments → PAYMENT_REQUIRED
+      let finalStatus = status;
+      if (status === 'APPROVED') {
+        const hasDueUnpaid = investment.payments.some(
+          (p) => p.status !== 'PAID' && p.status !== 'WAIVED' && (
+            p.name === 'Down Payment' ||
+            (p.dueDate && new Date(p.dueDate) <= new Date()) ||
+            p.status === 'OVERDUE' || p.status === 'UNDER_REVIEW'
+          ),
+        );
+        if (hasDueUnpaid) finalStatus = 'PAYMENT_REQUIRED';
+      }
+
       const updated = await tx.investment.update({
         where: { id },
-        data: { status: status as any },
+        data: { status: finalStatus as any },
       });
 
       // Notify the investor about the status change

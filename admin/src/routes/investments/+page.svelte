@@ -41,6 +41,23 @@
   $: totalProfit = allInv.filter((i: any) => i.payout).reduce((s: number, i: any) => s + (i.payout.profitAmount ?? 0), 0);
   $: soldCount = allInv.filter((i: any) => isSold(i)).length;
   $: activeCount = allInv.filter((i: any) => !isSold(i)).length;
+
+  const statusBadge: Record<string, string> = {
+    PENDING: 'badge-pending',
+    APPROVED: 'badge-approved',
+    PAYMENT_REQUIRED: 'badge-rejected',
+    REJECTED: 'badge-rejected',
+    PENDING_PAYOUT: 'badge-pending',
+    COMPLETED: 'badge-active',
+  };
+  const statusLabel: Record<string, string> = {
+    PENDING: 'Pending',
+    APPROVED: 'Approved',
+    PAYMENT_REQUIRED: 'Payment Required',
+    REJECTED: 'Rejected',
+    PENDING_PAYOUT: 'Pending Payout',
+    COMPLETED: 'Completed',
+  };
 </script>
 
 <svelte:head>
@@ -91,7 +108,9 @@
         <option value="">All Status</option>
         <option value="PENDING">Pending</option>
         <option value="APPROVED">Approved</option>
+        <option value="PAYMENT_REQUIRED">Payment Required</option>
         <option value="REJECTED">Rejected</option>
+        <option value="PENDING_PAYOUT">Pending Payout</option>
         <option value="COMPLETED">Completed</option>
       </select>
     </div>
@@ -138,18 +157,14 @@
                 {/if}
               </td>
               <td class="py-3 px-4">
-                {#if sold && inv.payout}
-                  <div class="space-y-1">
-                    <span class="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                      {inv.payout.status}
-                    </span>
-                    <div class="text-xs text-emerald-600 font-medium">+{fmt(inv.payout.profitAmount)}</div>
-                  </div>
-                {:else}
-                  <span class="badge-{inv.status === 'APPROVED' ? 'approved' : inv.status === 'REJECTED' ? 'rejected' : inv.status === 'PENDING' ? 'pending' : 'active'}">
-                    {inv.status}
+                <div class="space-y-1">
+                  <span class="{statusBadge[inv.status] ?? 'badge-pending'}">
+                    {statusLabel[inv.status] ?? inv.status}
                   </span>
-                {/if}
+                  {#if inv.payout}
+                    <div class="text-xs text-emerald-600 font-medium">+{fmt(inv.payout.profitAmount)}</div>
+                  {/if}
+                </div>
               </td>
               <td class="py-3 px-4 text-gray-500 text-xs">{fmtDate(inv.createdAt)}</td>
               <td class="py-3 px-4">
